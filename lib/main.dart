@@ -1,3 +1,15 @@
+import 'package:education_app/screens/category_screen.dart';
+import 'package:education_app/screens/course_screen.dart';
+import 'package:education_app/screens/filter_screen.dart';
+import 'package:education_app/screens/forgot_password_screen.dart';
+import 'package:education_app/screens/home_screen.dart';
+import 'package:education_app/screens/login_screen.dart';
+import 'package:education_app/screens/new_password_screen.dart';
+import 'package:education_app/screens/notification_screen.dart';
+import 'package:education_app/screens/onboarding_screen.dart';
+import 'package:education_app/screens/search_screen.dart';
+import 'package:education_app/screens/splash_screen.dart';
+import 'package:education_app/screens/verification_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,121 +21,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ProfileCard(),
-    );
-  }
-}
-
-class ProfileCard extends StatelessWidget {
-  const ProfileCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Center(
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Profile Card',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                const CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(
-                    'https://i.pinimg.com/736x/eb/76/a4/eb76a46ab920d056b02d203ca95e9a22.jpg',
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                const Text(
-                  'John Mohan',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const Text(
-                  'Mobile Developer',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: const [
-                    StatItem(label: 'Posts', value: '152'),
-                    StatItem(label: 'Followers', value: '1.2K'),
-                    StatItem(label: 'Following', value: '180'),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('Follow'),
-                ),
-              ],
-            ),
-          ),
-        ),
+      title: 'Education App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-    );
-  }
-}
-
-class StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const StatItem({
-    super.key,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.grey),
-        ),
-      ],
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/forgot_password': (context) => const ForgotPasswordScreen(),
+        '/new_password': (context) => const NewPasswordScreen(),
+        '/verification': (context) => const VerificationScreen(),
+        '/search': (context) => const SearchScreen(),
+        '/notification': (context) => const NotificationScreen(),
+        '/category': (context) => const CategoryScreen(),
+        '/course': (context) => const CourseScreen(),
+        '/filter': (context) => const FilterScreen(),
+      },
     );
   }
 }
