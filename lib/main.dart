@@ -4,12 +4,14 @@ import 'package:education_app/screens/filter_screen.dart';
 import 'package:education_app/screens/forgot_password_screen.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/login_screen.dart';
+
 import 'package:education_app/screens/new_password_screen.dart';
 import 'package:education_app/screens/notification_screen.dart';
 import 'package:education_app/screens/onboarding_screen.dart';
 import 'package:education_app/screens/search_screen.dart';
 import 'package:education_app/screens/splash_screen.dart';
 import 'package:education_app/screens/verification_screen.dart';
+import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -25,7 +27,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Education App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
+        useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       initialRoute: '/',
@@ -33,7 +36,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => HomeScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
         '/new_password': (context) => const NewPasswordScreen(),
         '/verification': (context) => const VerificationScreen(),

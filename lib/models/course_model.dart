@@ -11,6 +11,7 @@ class Course {
   final List<CurriculumSection> curriculum;
   final Instructor instructor;
   final Reviews reviews;
+  final double price;
 
   Course({
     required this.id,
@@ -21,6 +22,7 @@ class Course {
     required this.duration,
     required this.rating,
     required this.image,
+    required this.price,
     required this.overview,
     required this.curriculum,
     required this.instructor,
@@ -104,8 +106,5 @@ class Reviews {
   final int total;
   final double average;
 
-  Reviews({
-    required this.total,
-    required this.average,
-  });
+  Reviews({required this.total, required this.average});
 }

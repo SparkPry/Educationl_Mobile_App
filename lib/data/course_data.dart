@@ -6,10 +6,12 @@ final List<Course> courseData = [
     slug: 'dart-flutter',
     title: 'Dart & Flutter',
     category: 'Programming',
-    description: 'A complete guide to the Flutter SDK & Flutter Framework for building native iOS and Android apps. This course is fully updated for 2024.',
+    description:
+        'A complete guide to the Flutter SDK & Flutter Framework for building native iOS and Android apps. This course is fully updated for 2024.',
     duration: '2 hours',
     rating: 4.5,
     image: 'assets/images/FlutterCourseImage.jpg',
+    price: 19.99,
     overview: Overview(
       about: [
         'Learn the fundamentals of Dart programming.',
@@ -74,20 +76,19 @@ final List<Course> courseData = [
       avatar: 'assets/images/mentor1.jpg',
       bio: 'John Doe is a mobile developer with over 10 years of experience.',
     ),
-    reviews: Reviews(
-      total: 1234,
-      average: 4.5,
-    ),
+    reviews: Reviews(total: 1234, average: 4.5),
   ),
   Course(
     id: '2',
     slug: 'python-data-science',
     title: 'Python for Data Science',
     category: 'Data Science',
-    description: 'Learn Python for data science and machine learning. This course covers everything you need to know to get started in the field of data science.',
+    description:
+        'Learn Python for data science and machine learning. This course covers everything you need to know to get started in the field of data science.',
     duration: '3 hours',
     rating: 4.8,
     image: 'assets/images/DataScientCourseImage.jpg',
+    price: 19.99,
     overview: Overview(
       about: [
         'Learn the fundamentals of Python programming for data science.',
@@ -135,13 +136,15 @@ final List<Course> courseData = [
             id: '7',
             slug: 'numpy',
             title: 'NumPy',
-            content: 'Learn how to use the NumPy library for numerical computing.',
+            content:
+                'Learn how to use the NumPy library for numerical computing.',
           ),
           Lesson(
             id: '8',
             slug: 'pandas',
             title: 'Pandas',
-            content: 'Learn how to use the Pandas library for data manipulation and analysis.',
+            content:
+                'Learn how to use the Pandas library for data manipulation and analysis.',
           ),
         ],
       ),
@@ -152,9 +155,6 @@ final List<Course> courseData = [
       avatar: 'assets/images/mentor2.jpg',
       bio: 'Jane Smith is a data scientist with over 5 years of experience.',
     ),
-    reviews: Reviews(
-      total: 5678,
-      average: 4.8,
-    ),
+    reviews: Reviews(total: 5678, average: 4.8),
   ),
 ];

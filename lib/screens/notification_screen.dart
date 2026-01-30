@@ -1,3 +1,5 @@
+import 'package:education_app/screens/home_screen.dart';
+import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -35,12 +37,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      icon: Icon(Icons.arrow_back, color: Colors.black),
                       onPressed: () {
-                        Navigator.pop(context);
+                        // Navigate to HomeScreen instead of just popping
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
                       },
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Notification',
                         textAlign: TextAlign.center,
@@ -52,7 +58,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                     ),
                     // Placeholder to balance the row since back button takes space
-                    const SizedBox(width: 48), 
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
@@ -64,20 +70,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Today Section
-                        _buildSectionHeader(
-                          context, 
-                          'Today', 
-                          () { /* Handle 'Make all as read' for Today */ },
-                        ),
+                        _buildSectionHeader(context, 'Today', () {
+                          /* Handle 'Make all as read' for Today */
+                        }),
                         _buildNotificationList(), // Placeholder for Today's notifications
                         const SizedBox(height: 20),
 
                         // Yesterday Section
-                        _buildSectionHeader(
-                          context, 
-                          'Yesterday', 
-                          () { /* Handle 'Make all as read' for Yesterday */ },
-                        ),
+                        _buildSectionHeader(context, 'Yesterday', () {
+                          /* Handle 'Make all as read' for Yesterday */
+                        }),
                         _buildNotificationList(), // Placeholder for Yesterday's notifications
                         const SizedBox(height: 20),
                       ],
@@ -92,7 +94,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, VoidCallback onReadTap) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title,
+    VoidCallback onReadTap,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
@@ -100,18 +106,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.grey,
             ),
           ),
           GestureDetector(
             onTap: onReadTap,
-            child: const Text(
+            child: Text(
               'Make all as read',
               style: TextStyle(
-                color: Colors.blue,
+                color: AppColors.primaryColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -123,18 +129,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildNotificationList() {
     return Column(
-      children: const [
+      children: [
         NotificationListItem(
           title: 'New Course Added',
-          description: 'A new Flutter course "Advanced UI with Flutter" has been added.',
+          description:
+              'A new Flutter course "Advanced UI with Flutter" has been added.',
         ),
         NotificationListItem(
           title: 'Quiz Reminder',
-          description: 'Don\'t forget to complete your "Dart Basics" quiz by 5 PM.',
+          description:
+              'Don\'t forget to complete your "Dart Basics" quiz by 5 PM.',
         ),
         NotificationListItem(
           title: 'Live Session Starting',
-          description: 'Your live coding session with John Doe is starting in 10 minutes. Join now!',
+          description:
+              'Your live coding session with John Doe is starting in 10 minutes. Join now!',
         ),
       ],
     );
@@ -145,7 +154,7 @@ class NotificationListItem extends StatelessWidget {
   final String title;
   final String description;
 
-  const NotificationListItem({
+  NotificationListItem({
     super.key,
     required this.title,
     required this.description,
@@ -161,9 +170,11 @@ class NotificationListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundColor: Colors.lightBlue[100], // Soft light blue
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withOpacity(0.1),
                 radius: 20,
-                child: const Icon(Icons.notifications, color: Colors.blue),
+                child: Icon(Icons.notifications, color: Colors.grey),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -181,7 +192,7 @@ class NotificationListItem extends StatelessWidget {
                     Text(
                       description,
                       style: const TextStyle(
-                        color: Colors.grey,
+                        color: Colors.black54,
                         fontSize: 12,
                       ),
                       maxLines: 2,

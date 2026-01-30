@@ -1,0 +1,155 @@
+import 'package:education_app/utils/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:education_app/models/chat_model.dart';
+import 'package:education_app/screens/message_conversation_screen.dart';
+import 'package:education_app/widgets/chat_item_widget.dart';
+import 'package:education_app/screens/home_screen.dart';
+import 'package:education_app/screens/my_courses_screen.dart';
+import 'package:education_app/screens/profile_screen.dart';
+
+class InboxScreen extends StatefulWidget {
+  const InboxScreen({super.key});
+
+  @override
+  State<InboxScreen> createState() => _InboxScreenState();
+}
+
+class _InboxScreenState extends State<InboxScreen> {
+  // Dummy chat data
+  final List<Chat> _chats = [
+    const Chat(
+      senderName: 'Miss Johnson',
+      lastMessage: 'Okay, see you then!',
+      time: '10:30 AM',
+      avatarText: 'MJ',
+      isUnread: true,
+    ),
+    const Chat(
+      senderName: 'Mr. Smith',
+      lastMessage: 'Sure, I will send the files.',
+      time: 'Yesterday',
+      avatarText: 'MS',
+      isUnread: false,
+    ),
+    const Chat(
+      senderName: 'Dr. Lee',
+      lastMessage: 'Thank you for your feedback.',
+      time: 'Mon',
+      avatarText: 'DL',
+      isUnread: true,
+    ),
+    const Chat(
+      senderName: 'Professor X',
+      lastMessage: 'Meeting rescheduled to 3 PM.',
+      time: 'Sun',
+      avatarText: 'PX',
+      isUnread: false,
+    ),
+    const Chat(
+      senderName: 'Student Services',
+      lastMessage: 'Your application has been approved.',
+      time: '23/01',
+      avatarText: 'SS',
+      isUnread: true,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
+      appBar: AppBar(
+        title: const Text(
+          'Chat',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF6F6F6),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
+      ),
+      body: ListView.separated(
+        itemCount: _chats.length,
+        itemBuilder: (context, index) {
+          final chat = _chats[index];
+          return ChatItemWidget(
+            chat: chat,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MessageConversationScreen(
+                    chatUser: chat.senderName,
+                    avatarText: chat.avatarText,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        separatorBuilder: (context, index) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Divider(height: 1, color: Colors.grey.shade300),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 2, // Inbox tab
+        selectedItemColor: AppColors.primaryColor,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu_book),
+            label: 'My Courses',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.mail_outline),
+            label: 'Inbox',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0: // Home
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+              break;
+            case 1: // My Courses
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyCoursesScreen(),
+                ),
+              );
+              break;
+            case 2: // Inbox (current screen)
+              // Do nothing, already on InboxScreen
+              break;
+            case 3: // Profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+              break;
+          }
+        },
+      ),
+    );
+  }
+}

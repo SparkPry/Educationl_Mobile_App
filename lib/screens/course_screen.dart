@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/course_model.dart';
 import '../models/review.dart';
 import '../data/review_data.dart';
+import '../payment_screen.dart';
 
 class CourseScreen extends StatefulWidget {
   const CourseScreen({super.key});
@@ -18,7 +19,7 @@ class _CourseScreenState extends State<CourseScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -28,13 +29,14 @@ class _CourseScreenState extends State<CourseScreen>
   }
 
   Color _hexToColor(String hex) {
-    hex = hex.replaceAll("#", "");
+    hex = hex.replaceAll('#', '');
     return Color(int.parse('FF$hex', radix: 16));
   }
 
   @override
   Widget build(BuildContext context) {
-    final course = ModalRoute.of(context)!.settings.arguments as Course;
+    /// ✅ COURSE PASSED FROM HOME (API DATA)
+    final Course course = ModalRoute.of(context)!.settings.arguments as Course;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -43,11 +45,12 @@ class _CourseScreenState extends State<CourseScreen>
           children: [
             CustomScrollView(
               slivers: [
+                /// HEADER + IMAGE
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Section with AppBar and Image
+                      /// IMAGE + BACK BUTTON
                       Stack(
                         children: [
                           Container(
@@ -59,113 +62,111 @@ class _CourseScreenState extends State<CourseScreen>
                                 bottomRight: Radius.circular(30),
                               ),
                               image: DecorationImage(
-                                image: NetworkImage(course.image),
+                                image: course.image.startsWith('http')
+                                    ? NetworkImage(course.image)
+                                    : AssetImage(course.image) as ImageProvider,
                                 fit: BoxFit.cover,
                               ),
                             ),
                           ),
+
                           Positioned(
-                            top: 10,
-                            left: 10,
-                            right: 10,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.arrow_back,
-                                    color: Colors.blue,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      '/home',
-                                      (route) => false,
-                                    );
-                                  },
+                            top: 12,
+                            left: 12,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.black45,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
                                 ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.favorite_border,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () {},
-                                ),
-                              ],
+                                onPressed: () => Navigator.pop(context),
+                              ),
                             ),
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 20),
 
-                      // Course Info
+                      /// TITLE
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          course.title,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      /// RATING + CATEGORY
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
                           children: [
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 5),
                             Text(
-                              course.title,
+                              '${course.rating} (${course.reviews.total} reviews)',
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              course.category,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 28,
+                                color: Color(0xFF6B66FF),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  color: Colors.amber,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  '${course.rating} (${course.reviews.total} reviews)',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                                const SizedBox(width: 15),
-                                Text(
-                                  course.category,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildStatCard(
-                                  '${course.reviews.total}',
-                                  'members',
-                                  Icons.people_outline,
-                                ),
-                                _buildStatCard(
-                                  course.duration,
-                                  '',
-                                  Icons.timer_outlined,
-                                ),
-                                _buildStatCard(
-                                  'Certificate',
-                                  '',
-                                  Icons.card_membership_outlined,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
 
-                      // Tabs Section
+                      const SizedBox(height: 20),
+
+                      /// STATS
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _statCard(
+                              '${course.reviews.total}',
+                              'members',
+                              Icons.people_outline,
+                            ),
+                            _statCard(
+                              (course.duration.isNotEmpty &&
+                                      course.duration != 'N/A')
+                                  ? course.duration
+                                  : 'N/A',
+                              '',
+                              Icons.timer_outlined,
+                            ),
+                            _statCard(
+                              'Certificate',
+                              '',
+                              Icons.card_membership_outlined,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 25),
+
+                      /// TABS
                       TabBar(
                         controller: _tabController,
-                        labelColor: Colors.blue,
+                        labelColor: const Color(0xFF6B66FF),
                         unselectedLabelColor: Colors.grey,
-                        indicatorColor: Colors.blue,
+                        indicatorColor: const Color(0xFF6B66FF),
                         tabs: const [
                           Tab(text: 'About'),
                           Tab(text: 'Lessons'),
@@ -175,20 +176,26 @@ class _CourseScreenState extends State<CourseScreen>
                     ],
                   ),
                 ),
+
+                /// TAB CONTENT (WITH BOTTOM SPACE)
                 SliverFillRemaining(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildAboutTab(course),
-                      _buildLessonsTab(course),
-                      _buildReviewsTab(course),
-                    ],
+                  hasScrollBody: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _about(course),
+                        _lessons(course),
+                        _reviews(course),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
 
-            // Bottom Button
+            /// ENROLL BUTTON
             Align(
               alignment: Alignment.bottomCenter,
               child: ClipRRect(
@@ -196,18 +203,24 @@ class _CourseScreenState extends State<CourseScreen>
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    width: double.infinity,
-                    height: 60,
                     margin: const EdgeInsets.all(20),
+                    height: 60,
                     decoration: BoxDecoration(
-                      color: _hexToColor('6B66FF').withOpacity(0.8),
+                      color: _hexToColor('6B66FF').withOpacity(0.9),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Enroll Course \$75.00',
-                        style: TextStyle(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PaymentScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Enroll Course \$${course.price}',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -224,7 +237,8 @@ class _CourseScreenState extends State<CourseScreen>
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon) {
+  /// STAT CARD
+  Widget _statCard(String value, String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       decoration: BoxDecoration(
@@ -233,7 +247,6 @@ class _CourseScreenState extends State<CourseScreen>
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -241,22 +254,16 @@ class _CourseScreenState extends State<CourseScreen>
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue, size: 28),
-          const SizedBox(width: 10),
+          Icon(icon, color: const Color(0xFF6B66FF)),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
               if (label.isNotEmpty)
                 Text(
                   label,
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
             ],
           ),
@@ -265,17 +272,25 @@ class _CourseScreenState extends State<CourseScreen>
     );
   }
 
-  Widget _buildAboutTab(Course course) {
+  /// ABOUT TAB (Instructor + Long Description)
+  Widget _about(Course course) {
+    final String longDescription = course.overview.about.isNotEmpty
+        ? course.overview.about.first
+        : course.description;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// INSTRUCTOR
           Row(
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundImage: NetworkImage(course.instructor.avatar),
+                backgroundImage: course.instructor.avatar.startsWith('http')
+                    ? NetworkImage(course.instructor.avatar)
+                    : AssetImage(course.instructor.avatar) as ImageProvider,
               ),
               const SizedBox(width: 15),
               Column(
@@ -284,267 +299,72 @@ class _CourseScreenState extends State<CourseScreen>
                   Text(
                     course.instructor.name,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     course.instructor.title,
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 25),
+
+          /// ABOUT COURSE
           const Text(
             'About Course',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
           Text(
-            course.description,
-            style: const TextStyle(fontSize: 16, color: Colors.black87),
+            longDescription,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.6,
+              color: Colors.black87,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLessonsTab(Course course) {
-    final List<Lesson> allLessons = course.curriculum
-        .expand((section) => section.lessons)
-        .toList();
-
-    if (allLessons.isEmpty) {
+  /// LESSONS TAB
+  Widget _lessons(Course course) {
+    if (course.curriculum.isEmpty) {
       return const Center(
         child: Text(
-          "No lessons available for this course yet.",
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          'No lessons available yet',
+          style: TextStyle(color: Colors.grey),
         ),
       );
     }
+    return ListView();
+  }
 
+  /// REVIEWS TAB
+  Widget _reviews(Course course) {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: allLessons.length,
-      itemBuilder: (context, index) {
-        final lesson = allLessons[index];
-        return _buildLessonItem(lesson, index);
-      },
+      itemCount: dummyReviews.length,
+      itemBuilder: (_, i) => _reviewCard(dummyReviews[i]),
     );
   }
 
-  Widget _buildLessonItem(Lesson lesson, int index) {
-    String lessonNumber = (index + 1).toString().padLeft(2, '0');
-    String duration = lesson.videoDuration != null
-        ? '${(lesson.videoDuration! / 60).toStringAsFixed(2)} mins'
-        : 'N/A';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget _reviewCard(Review review) {
+    return ListTile(
+      leading: CircleAvatar(backgroundImage: AssetImage(review.avatar)),
+      title: Text(review.name),
+      subtitle: Text(review.comment),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Center(
-              child: Text(
-                lessonNumber,
-                style: const TextStyle(
-                  color: Colors.purple,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  lesson.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  duration,
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 15),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.play_arrow, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReviewsTab(Course course) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: dummyReviews.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildRatingSummary(course);
-        }
-        final review = dummyReviews[index - 1];
-        return _buildReviewCommentCard(review);
-      },
-    );
-  }
-
-  Widget _buildRatingSummary(Course course) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0),
-      child: Row(
-        children: [
-          // Average Rating
-          Column(
-            children: [
-              Text(
-                course.reviews.average.toString(),
-                style: const TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Text('out of 5'),
-            ],
-          ),
-          const SizedBox(width: 20),
-          // Progress Bars
-          Expanded(
-            child: Column(
-              children: [
-                _buildProgressBarRow(5, 0.7),
-                _buildProgressBarRow(4, 0.2),
-                _buildProgressBarRow(3, 0.05),
-                _buildProgressBarRow(2, 0.03),
-                _buildProgressBarRow(1, 0.02),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressBarRow(int star, double percentage) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Row(
-        children: [
-          Text('$star'),
-          const SizedBox(width: 5),
           const Icon(Icons.star, color: Colors.amber, size: 16),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: percentage,
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _hexToColor('4A89F3'),
-                ),
-                minHeight: 8,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text('${(percentage * 100).toInt()}%'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReviewCommentCard(Review review) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundImage: AssetImage(review.avatar),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      review.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 16),
-                        const SizedBox(width: 5),
-                        Text(review.rating.toString()),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                review.timestamp,
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(review.comment),
+          Text(review.rating.toString()),
         ],
       ),
     );

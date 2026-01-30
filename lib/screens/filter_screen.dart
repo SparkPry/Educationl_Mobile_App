@@ -1,3 +1,4 @@
+import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class FilterScreen extends StatefulWidget {
@@ -212,15 +213,12 @@ class _FilterScreenState extends State<FilterScreen> {
           );
         }),
         const SizedBox(width: 8),
-        Text(
-          '${_rating}/5',
-          style: const TextStyle(fontSize: 16),
-        ),
+        Text('${_rating}/5', style: const TextStyle(fontSize: 16)),
       ],
     );
   }
 
-    Widget _buildDurationChips() {
+  Widget _buildDurationChips() {
     final durations = ['0–3 hours', '4–7 hours', '8–17 hours', '17–3...'];
     return Wrap(
       spacing: 8.0,
@@ -249,7 +247,6 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-
   Widget _buildApplyButton() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -258,7 +255,7 @@ class _FilterScreenState extends State<FilterScreen> {
           // Apply filter logic
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.purple,
+          backgroundColor: AppColors.primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
