@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/course_model.dart';
 import '../data/review_data.dart';
-import '../payment_screen.dart';
 import '../models/review.dart';
+import '../payment_screen.dart';
 
 class CourseScreen extends StatefulWidget {
   const CourseScreen({super.key});
@@ -48,6 +48,7 @@ class _CourseScreenState extends State<CourseScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      /// IMAGE
                       Stack(
                         children: [
                           Container(
@@ -85,6 +86,7 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 20),
 
+                      /// TITLE
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
@@ -98,6 +100,7 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 10),
 
+                      /// RATING + CATEGORY
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -125,6 +128,7 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 20),
 
+                      /// STATS
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -151,6 +155,7 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 25),
 
+                      /// TABS
                       TabBar(
                         controller: _tabController,
                         labelColor: const Color(0xFF6B66FF),
@@ -183,6 +188,7 @@ class _CourseScreenState extends State<CourseScreen>
               ],
             ),
 
+            /// ENROLL BUTTON
             Align(
               alignment: Alignment.bottomCenter,
               child: ClipRRect(
@@ -223,6 +229,8 @@ class _CourseScreenState extends State<CourseScreen>
       ),
     );
   }
+
+  /// ---------- HELPERS ----------
 
   Widget _statCard(String value, String label, IconData icon) {
     return Container(
@@ -299,7 +307,6 @@ class _CourseScreenState extends State<CourseScreen>
 
           const SizedBox(height: 25),
 
-          /// ABOUT COURSE
           const Text(
             'About Course',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

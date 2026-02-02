@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../data/course_data.dart';
+import '../services/course_api_service.dart';
+import '../models/api_course.dart';
 import '../models/course_model.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -10,36 +11,77 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  late final TextEditingController _searchController;
+  late TextEditingController _searchController;
 
-  List<Course> allCourses = []; // for search
-  List<Course> filteredCourses = []; // for search
+  static const String token =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
+
+  List<ApiCourse> _apiCourses = [];
+  List<ApiCourse> _filteredCourses = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController(text: '');
-
-    // allCourses = courseData; // original data
-    filteredCourses = []; // empty at start
+    _searchController = TextEditingController();
+    _fetchCourses();
   }
 
-  void _searchCourses(String query) {
-    if (query.isEmpty) {
+  Future<void> _fetchCourses() async {
+    try {
+      final courses = await CourseApiService.fetchCourses(token);
       setState(() {
-        filteredCourses = [];
+        _apiCourses = courses;
+        _loading = false;
       });
+    } catch (e) {
+      debugPrint('Error loading courses: $e');
+      setState(() => _loading = false);
+    }
+  }
+
+  void _search(String query) {
+    if (query.isEmpty) {
+      setState(() => _filteredCourses = []);
       return;
     }
 
-    final searchLower = query.toLowerCase();
-
+    final lower = query.toLowerCase();
     setState(() {
-      filteredCourses = allCourses.where((course) {
-        return course.title.toLowerCase().contains(searchLower) ||
-            course.category.toLowerCase().contains(searchLower);
+      _filteredCourses = _apiCourses.where((c) {
+        return c.title.toLowerCase().contains(lower) ||
+            c.category.toLowerCase().contains(lower);
       }).toList();
     });
+  }
+
+  /// 🔑 Convert ApiCourse → Course (UI MODEL)
+  Course _toCourse(ApiCourse api) {
+    return Course(
+      id: api.id.toString(),
+      slug: api.title.toLowerCase().replaceAll(' ', '-'),
+      title: api.title,
+      category: api.category,
+      description: api.longDescription,
+      duration: api.duration,
+      rating: 4.5,
+      image: api.thumbnail,
+
+      overview: Overview(about: [], learn: [], requirements: [], forWho: []),
+
+      curriculum: [],
+
+      instructor: Instructor(
+        name: 'Instructor',
+        title: 'Teacher',
+        avatar: 'assets/images/mentor1.jpg',
+        bio: '',
+      ),
+
+      reviews: Reviews(total: 0, average: 4.5),
+
+      price: api.discountPrice ?? api.price,
+    );
   }
 
   @override
@@ -54,16 +96,16 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: Colors.grey[900],
       body: Center(
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24.0),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
             children: [
-              _buildSearchBar(),
-              const Divider(height: 1, color: Colors.black12),
-              Expanded(child: _buildSuggestionList()),
+              _searchBar(),
+              const Divider(height: 1),
+              Expanded(child: _results()),
             ],
           ),
         ),
@@ -71,39 +113,32 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _searchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+      padding: const EdgeInsets.all(12),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black54),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
           Expanded(
             child: TextField(
               controller: _searchController,
               autofocus: true,
-              onChanged: _searchCourses, // for search
-              style: const TextStyle(fontSize: 18.0, color: Colors.black87),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.black38),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.black38),
-                  onPressed: () => _searchController.clear(),
-                ),
+              onChanged: _search,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Search courses...',
                 border: InputBorder.none,
-                hintText: 'Search...',
-                hintStyle: const TextStyle(color: Colors.black38),
               ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.black54),
+            icon: const Icon(Icons.clear),
             onPressed: () {
-              Navigator.pushNamed(context, '/filter');
+              _searchController.clear();
+              setState(() => _filteredCourses = []);
             },
           ),
         ],
@@ -111,26 +146,36 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSuggestionList() {
+  Widget _results() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     if (_searchController.text.isEmpty) {
       return const Center(child: Text('Start typing to search'));
     }
 
-    if (filteredCourses.isEmpty) {
+    if (_filteredCourses.isEmpty) {
       return const Center(child: Text('No results found'));
     }
 
     return ListView.builder(
-      itemCount: filteredCourses.length,
+      itemCount: _filteredCourses.length,
       itemBuilder: (context, index) {
-        final course = filteredCourses[index];
+        final apiCourse = _filteredCourses[index];
 
         return ListTile(
           leading: const Icon(Icons.search, color: Color(0xFF6B66FF)),
-          title: Text(course.title),
-          subtitle: Text(course.category),
+          title: Text(apiCourse.title),
+          subtitle: Text(apiCourse.category),
           onTap: () {
-            Navigator.pushNamed(context, '/course', arguments: course);
+            final course = _toCourse(apiCourse);
+
+            Navigator.pushNamed(
+              context,
+              '/course',
+              arguments: course, // ✅ ALWAYS Course
+            );
           },
         );
       },
