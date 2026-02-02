@@ -1,25 +1,13 @@
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
+import 'package:education_app/screens/learning_screen.dart';
+
 import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
-// A simple data model for the course examples
-class _CourseData {
-  final String title;
-  final String instructor;
-  final String category;
-  final String initials; // Changed from IconData to String
-  final double? progress; // Added for progress tracking (now nullable)
-
-  const _CourseData({
-    required this.title,
-    required this.instructor,
-    required this.category,
-    required this.initials, // Updated parameter
-    this.progress, // New parameter, now optional
-  });
-}
+import 'package:education_app/models/course_model.dart'; // Import Course model
+import 'package:education_app/data/course_data.dart'; // Import global course data
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -33,85 +21,44 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
 
   static const List<String> _tabTitles = ['About', 'Ongoing', 'Completed'];
 
-  // Example course data for Ongoing tab based on the user's request
-  static const List<_CourseData> _ongoingCourses = [
-    _CourseData(
-      title: 'Java Script',
-      instructor: 'Dr. Kendy',
-      category: 'Programming',
-      initials: 'JS',
-      progress: 0.95, // 95%
-    ),
-    _CourseData(
-      title: 'Graphic Design',
-      instructor: 'Mrs William',
-      category: 'Design',
-      initials: 'GW',
-      progress: 0.60, // 60%
-    ),
-    _CourseData(
-      title: 'UI/UX Design',
-      instructor: 'Mr. Alex',
-      category: 'Design',
-      initials: 'UA',
-      progress: 0.30, // 30%
-    ),
-  ];
+  List<Course> get _ongoingCourses => courseData
+      .where(
+        (course) =>
+            course.progress != null &&
+            course.progress! > 0 &&
+            course.progress! < 1.0,
+      )
+      .toList();
 
-  // Example course data for About tab (for demonstration, can be expanded)
-  static const List<_CourseData> _aboutCourses = [
-    _CourseData(
-      title: 'Introduction to Flutter',
-      instructor: 'Dr. Sarah',
-      category: 'Mobile Dev',
-      initials: 'SF',
-      progress: null, // No progress for About tab
-    ),
-    _CourseData(
-      title: 'Web Development Basics',
-      instructor: 'Mr. David',
-      category: 'Web Dev',
-      initials: 'DW',
-      progress: null, // No progress for About tab
-    ),
-    _CourseData(
-      title: 'Data Science Fundamentals',
-      instructor: 'Ms. Emily',
-      category: 'Data Science',
-      initials: 'ED',
-      progress: null, // No progress for About tab
-    ),
-    _CourseData(
-      title: 'Digital Marketing Strategy',
-      instructor: 'Dr. Chris',
-      category: 'Marketing',
-      initials: 'CM',
-      progress: null, // No progress for About tab
-    ),
-  ];
+  List<Course> get _completedCourses => courseData
+      .where((course) => course.progress != null && course.progress! == 1.0)
+      .toList();
 
-  // Example course data for Completed tab (for demonstration, can be expanded)
-  static const List<_CourseData> _completedCourses = [
-    _CourseData(
-      title: 'Completed Course A',
-      instructor: 'Dr. White',
-      category: 'Science',
-      initials: 'DW',
-      progress: 1.0,
-    ),
-    _CourseData(
-      title: 'Advanced React',
-      instructor: 'Ms. Lisa',
-      category: 'Programming',
-      initials: 'LR',
-      progress: 1.0,
-    ),
-  ];
-
-  List<_CourseData> get _currentCourses {
+  List<Course> get _currentCourses {
     switch (_selectedTabIndex) {
       case 0: // About
-        return _aboutCourses;
+        // For "About" tab, return all courses but with progress set to null
+        return courseData
+            .map(
+              (course) => Course(
+                id: course.id,
+                slug: course.slug,
+                title: course.title,
+                category: course.category,
+                description: course.description,
+                duration: course.duration,
+                rating: course.rating,
+                image: course.image,
+                price: course.price,
+                overview: course.overview,
+                curriculum: course.curriculum,
+                instructor: course.instructor,
+                reviews: course.reviews,
+                progress:
+                    null, // Explicitly set progress to null for "About" tab
+              ),
+            )
+            .toList();
       case 1: // Ongoing
         return _ongoingCourses;
       case 2: // Completed
@@ -194,11 +141,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               itemBuilder: (context, index) {
                 final course = _currentCourses[index];
                 return _CourseCard(
-                  title: course.title,
-                  instructor: course.instructor,
-                  category: course.category,
-                  initials: course.initials,
-                  progress: course.progress, // Pass null or actual progress
+                  course: course, // Pass the Course object directly
                 );
               },
             ),
@@ -298,138 +241,151 @@ class _TabItem extends StatelessWidget {
 // -------------------- COURSE CARD --------------------
 
 class _CourseCard extends StatelessWidget {
-  final String title;
-  final String instructor;
-  final String category;
-  final String initials;
-  final double? progress; // Now nullable
+  final Course course; // Change to accept Course object
 
-  const _CourseCard({
-    required this.title,
-    required this.instructor,
-    required this.category,
-    required this.initials,
-    this.progress, // Now optional
-  });
+  const _CourseCard({required this.course});
 
   @override
   Widget build(BuildContext context) {
-    final bool showProgress = progress != null && progress! > 0;
+    final bool showProgress = course.progress != null && course.progress! > 0;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          // Initials Container
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withAlpha((255 * 0.1).round()),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: TextStyle(color: AppColors.primaryColor, fontSize: 24),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LearningScreen()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            // Avatar Container
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withAlpha((255 * 0.1).round()),
+                borderRadius: BorderRadius.circular(8),
               ),
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          // Text Column
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    fontFamily: 'Roboto',
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text(
-                      instructor,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        '|',
-                        style: TextStyle(
-                          color: Colors.grey.shade300,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      category,
+              // Directly use Image.asset here
+              child: Image.asset(
+                course.image, // Use course image
+                fit: BoxFit.cover,
+                alignment: Alignment.center, // Center the course image
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to initials if image fails
+                  return Center(
+                    child: Text(
+                      course.title
+                          .split(' ')
+                          .map((e) => e[0])
+                          .join(), // Initials from course title
                       style: TextStyle(
                         color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Roboto',
+                        fontSize: 24,
                       ),
                     ),
-                  ],
-                ),
-                if (showProgress) ...[
-                  const SizedBox(height: 10),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Text Column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    course.title, // Use course title
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: 'Roboto',
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Text(
-                        'Progress',
+                        course.instructor.name, // Use instructor name
                         style: TextStyle(
                           color: Colors.grey.shade600,
-                          fontSize: 13,
+                          fontSize: 14,
                           fontFamily: 'Roboto',
                         ),
                       ),
-                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          '|',
+                          style: TextStyle(
+                            color: Colors.grey.shade300,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
                       Text(
-                        '${(progress! * 100).round()}%',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                        course.category, // Use course category
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w500,
                           fontFamily: 'Roboto',
-                          color: Colors.black87,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Colors.grey.shade300,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primaryColor,
-                      ),
-                      minHeight: 6,
+                  if (showProgress) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Text(
+                          'Progress',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${(course.progress! * 100).round()}%', // Use course progress
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            fontFamily: 'Roboto',
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: LinearProgressIndicator(
+                        value: course.progress, // Use course progress
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryColor,
+                        ),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
 
-          Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade400),
-        ],
+            Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade400),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ class Chat {
   final String lastMessage;
   final String time;
   final String avatarText; // Using initials for avatar
+  final String? avatarUrl; // Using for avatar
   final bool isUnread;
 
   const Chat({
@@ -10,6 +11,7 @@ class Chat {
     required this.lastMessage,
     required this.time,
     required this.avatarText,
+    this.avatarUrl,
     this.isUnread = false,
   });
 }

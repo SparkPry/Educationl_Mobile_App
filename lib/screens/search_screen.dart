@@ -20,7 +20,7 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     _searchController = TextEditingController(text: '');
 
-    allCourses = courseData; // original data
+    // allCourses = courseData; // original data
     filteredCourses = []; // empty at start
   }
 

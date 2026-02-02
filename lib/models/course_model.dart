@@ -11,6 +11,7 @@ class Course {
   final List<CurriculumSection> curriculum;
   final Instructor instructor;
   final Reviews reviews;
+  final double? progress; // Added for progress tracking
   final double price;
 
   Course({
@@ -22,11 +23,12 @@ class Course {
     required this.duration,
     required this.rating,
     required this.image,
-    required this.price,
     required this.overview,
     required this.curriculum,
     required this.instructor,
     required this.reviews,
+    required this.price,
+    this.progress, // Added to constructor
   });
 }
 

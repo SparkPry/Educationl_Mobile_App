@@ -29,18 +29,25 @@ class MessageBubbleWidget extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (!isSentByMe && message.senderAvatarText != null) ...[
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primaryColor.withAlpha((255 * 0.1).round()),
-                    child: Text(
-                      message.senderAvatarText!,
-                      style: TextStyle(
-                        color: AppColors.primaryColor,
-                        fontSize: 12,
+                if (!isSentByMe) ...[
+                  if (message.senderAvatarUrl != null)
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundImage: AssetImage(message.senderAvatarUrl!),
+                    )
+                  else if (message.senderAvatarText != null)
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor:
+                          AppColors.primaryColor.withAlpha((255 * 0.1).round()),
+                      child: Text(
+                        message.senderAvatarText!,
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 8),
                 ],
                 Container(

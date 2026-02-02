@@ -6,11 +6,13 @@ import 'package:education_app/widgets/message_bubble_widget.dart';
 class MessageConversationScreen extends StatefulWidget {
   final String chatUser;
   final String avatarText;
+  final String? avatarUrl;
 
   const MessageConversationScreen({
     super.key,
     required this.chatUser,
     required this.avatarText,
+    this.avatarUrl,
   });
 
   @override
@@ -20,30 +22,38 @@ class MessageConversationScreen extends StatefulWidget {
 
 class _MessageConversationScreenState extends State<MessageConversationScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Message> _messages = [
-    Message(
-      text: 'Hi there! How are you doing today?',
-      time: '10:00 AM',
-      type: MessageType.received,
-      senderAvatarText: 'MJ',
-    ),
-    Message(
-      text: 'I\'m doing great, thanks for asking!',
-      time: '10:01 AM',
-      type: MessageType.sent,
-    ),
-    Message(
-      text: 'I have a question about the Flutter course.',
-      time: '10:02 AM',
-      type: MessageType.sent,
-    ),
-    Message(
-      text: 'Sure, I\'d be happy to help! What is your question?',
-      time: '10:05 AM',
-      type: MessageType.received,
-      senderAvatarText: 'MJ',
-    ),
-  ];
+  late final List<Message> _messages;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages = [
+      Message(
+        text: 'Hi there! How are you doing today?',
+        time: '10:00 AM',
+        type: MessageType.received,
+        senderAvatarText: widget.avatarText,
+        senderAvatarUrl: widget.avatarUrl,
+      ),
+      Message(
+        text: 'I\'m doing great, thanks for asking!',
+        time: '10:01 AM',
+        type: MessageType.sent,
+      ),
+      Message(
+        text: 'I have a question about the Flutter course.',
+        time: '10:02 AM',
+        type: MessageType.sent,
+      ),
+      Message(
+        text: 'Sure, I\'d be happy to help! What is your question?',
+        time: '10:05 AM',
+        type: MessageType.received,
+        senderAvatarText: widget.avatarText,
+        senderAvatarUrl: widget.avatarUrl,
+      ),
+    ];
+  }
 
   void _sendMessage() {
     if (_messageController.text.isNotEmpty) {

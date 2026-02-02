@@ -161,16 +161,23 @@ class ProfileSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         SizedBox(height: 24),
-        CircleAvatar(
-          radius: 40,
-          backgroundImage: NetworkImage('https://via.placeholder.com/80'),
+        ClipOval(
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: Image.asset(
+              'assets/images/John Doe.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+            ),
+          ),
         ),
         SizedBox(height: 16),
         Text(
-          'Tep Sophanha',
+          'John Doe',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -179,7 +186,7 @@ class ProfileSection extends StatelessWidget {
         ),
         SizedBox(height: 4),
         Text(
-          'tepsophanha@example.com',
+          'johndoe@example.com',
           style: TextStyle(
             fontSize: 14,
             color: Color(0xFF8E8E93),

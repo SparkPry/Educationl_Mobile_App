@@ -68,26 +68,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               _buildAvatar(),
               const SizedBox(height: 24),
-              const Text(
-                'Johnny Sin', // Placeholder for user's name
+              Text(
+                'John Doe', // New placeholder
                 style: TextStyle(
-                  color: kSecondaryTextColor,
+                  color: kSecondaryTextColor.withOpacity(0.6), // Faded
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'johnny.sin@example.com', // Placeholder for user's email
+                'Johndoe@gmail.com', // New placeholder
                 style: TextStyle(
-                  color: kPrimaryTextColor.withOpacity(0.8),
+                  color: kPrimaryTextColor.withOpacity(0.4), // More faded
                   fontSize: 16,
                 ),
               ),
               const SizedBox(height: 40),
-              _buildTextField(label: 'Full Name'),
+              _buildTextField(
+                label: 'Full Name',
+                initialValue: 'Enter Full Name',
+                isFaded: true,
+              ),
               const SizedBox(height: 20),
-              _buildTextField(label: 'Email'),
+              _buildTextField(
+                label: 'Email',
+                initialValue: 'Enter Email',
+                isFaded: true,
+              ),
               const SizedBox(height: 20),
               _buildPhoneField(),
               const SizedBox(height: 20),
@@ -120,11 +128,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ],
             ),
-            child: const CircleAvatar(
-              radius: 65,
-              backgroundImage: NetworkImage(
-                'https://via.placeholder.com/150',
-              ), // Placeholder image
+            child: ClipOval(
+              child: SizedBox(
+                width: 130,
+                height: 130,
+                child: Image.asset(
+                  'assets/images/John Doe.jpg',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                ),
+              ),
             ),
           ),
           Positioned(
@@ -154,6 +167,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required String label,
     String? initialValue,
     int maxLines = 1,
+    bool isFaded = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +175,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Text(
           label,
           style: const TextStyle(
-            color: kPrimaryTextColor,
+            color: kSecondaryTextColor,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -170,8 +184,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextFormField(
           controller: TextEditingController(text: initialValue),
           maxLines: maxLines,
-          style: const TextStyle(
-            color: kSecondaryTextColor,
+          style: TextStyle(
+            color: isFaded
+                ? kPrimaryTextColor.withOpacity(0.6)
+                : kSecondaryTextColor,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
@@ -207,7 +223,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const Text(
           'Phone Number',
           style: TextStyle(
-            color: kPrimaryTextColor,
+            color: kSecondaryTextColor,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -256,8 +272,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: TextFormField(
                   controller: TextEditingController(text: ''),
                   keyboardType: TextInputType.phone,
-                  style: const TextStyle(
-                    color: kSecondaryTextColor,
+                  style: TextStyle(
+                    color: kPrimaryTextColor.withOpacity(0.6), // Faded
                     fontWeight: FontWeight.w500,
                   ),
                   decoration: InputDecoration(
@@ -268,7 +284,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
-                    hintText: '123456789',
+                    hintText: '123 456 789',
                     hintStyle: TextStyle(
                       color: kPrimaryTextColor.withOpacity(0.6),
                       fontWeight: FontWeight.normal,

@@ -76,6 +76,7 @@ class ForgotPasswordScreen extends StatelessWidget {
       child: TextField(
         decoration: InputDecoration(
           hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[400]),
           prefixIcon: Icon(icon, color: Colors.grey),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),

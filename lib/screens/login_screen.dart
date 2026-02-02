@@ -230,6 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
             obscureText: pass,
             decoration: InputDecoration(
               hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400]),
               prefixIcon: Icon(icon, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(

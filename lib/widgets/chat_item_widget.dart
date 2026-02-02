@@ -16,17 +16,30 @@ class ChatItemWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primaryColor,
-              child: Text(
-                chat.avatarText,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            if (chat.avatarUrl != null)
+              SizedBox(
+                width: 56, // 2 * radius
+                height: 56, // 2 * radius
+                child: ClipOval(
+                  child: Image.asset(
+                    chat.avatarUrl!,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
+                ),
+              )
+            else
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: AppColors.primaryColor,
+                child: Text(
+                  chat.avatarText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(

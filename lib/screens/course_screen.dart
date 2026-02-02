@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/course_model.dart';
-import '../models/review.dart';
 import '../data/review_data.dart';
 import '../payment_screen.dart';
+import '../models/review.dart';
 
 class CourseScreen extends StatefulWidget {
   const CourseScreen({super.key});
@@ -35,7 +35,6 @@ class _CourseScreenState extends State<CourseScreen>
 
   @override
   Widget build(BuildContext context) {
-    /// ✅ COURSE PASSED FROM HOME (API DATA)
     final Course course = ModalRoute.of(context)!.settings.arguments as Course;
 
     return Scaffold(
@@ -45,12 +44,10 @@ class _CourseScreenState extends State<CourseScreen>
           children: [
             CustomScrollView(
               slivers: [
-                /// HEADER + IMAGE
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// IMAGE + BACK BUTTON
                       Stack(
                         children: [
                           Container(
@@ -69,7 +66,6 @@ class _CourseScreenState extends State<CourseScreen>
                               ),
                             ),
                           ),
-
                           Positioned(
                             top: 12,
                             left: 12,
@@ -89,7 +85,6 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 20),
 
-                      /// TITLE
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
@@ -103,7 +98,6 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 10),
 
-                      /// RATING + CATEGORY
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -131,7 +125,6 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 20),
 
-                      /// STATS
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -143,10 +136,7 @@ class _CourseScreenState extends State<CourseScreen>
                               Icons.people_outline,
                             ),
                             _statCard(
-                              (course.duration.isNotEmpty &&
-                                      course.duration != 'N/A')
-                                  ? course.duration
-                                  : 'N/A',
+                              course.duration,
                               '',
                               Icons.timer_outlined,
                             ),
@@ -161,7 +151,6 @@ class _CourseScreenState extends State<CourseScreen>
 
                       const SizedBox(height: 25),
 
-                      /// TABS
                       TabBar(
                         controller: _tabController,
                         labelColor: const Color(0xFF6B66FF),
@@ -177,7 +166,6 @@ class _CourseScreenState extends State<CourseScreen>
                   ),
                 ),
 
-                /// TAB CONTENT (WITH BOTTOM SPACE)
                 SliverFillRemaining(
                   hasScrollBody: true,
                   child: Padding(
@@ -195,7 +183,6 @@ class _CourseScreenState extends State<CourseScreen>
               ],
             ),
 
-            /// ENROLL BUTTON
             Align(
               alignment: Alignment.bottomCenter,
               child: ClipRRect(
@@ -237,7 +224,6 @@ class _CourseScreenState extends State<CourseScreen>
     );
   }
 
-  /// STAT CARD
   Widget _statCard(String value, String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -272,7 +258,6 @@ class _CourseScreenState extends State<CourseScreen>
     );
   }
 
-  /// ABOUT TAB (Instructor + Long Description)
   Widget _about(Course course) {
     final String longDescription = course.overview.about.isNotEmpty
         ? course.overview.about.first
@@ -333,20 +318,15 @@ class _CourseScreenState extends State<CourseScreen>
     );
   }
 
-  /// LESSONS TAB
   Widget _lessons(Course course) {
-    if (course.curriculum.isEmpty) {
-      return const Center(
-        child: Text(
-          'No lessons available yet',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-    return ListView();
+    return const Center(
+      child: Text(
+        'Lessons will be available soon',
+        style: TextStyle(color: Colors.grey),
+      ),
+    );
   }
 
-  /// REVIEWS TAB
   Widget _reviews(Course course) {
     return ListView.builder(
       padding: const EdgeInsets.all(20),

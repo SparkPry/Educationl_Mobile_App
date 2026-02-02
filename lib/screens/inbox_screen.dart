@@ -18,38 +18,51 @@ class _InboxScreenState extends State<InboxScreen> {
   // Dummy chat data
   final List<Chat> _chats = [
     const Chat(
-      senderName: 'Miss Johnson',
+      senderName: 'Student Service',
       lastMessage: 'Okay, see you then!',
       time: '10:30 AM',
-      avatarText: 'MJ',
+      avatarText: 'SS',
       isUnread: true,
     ),
     const Chat(
-      senderName: 'Mr. Smith',
+      senderName: 'John Doe',
+      lastMessage: 'Hi there! How are you doing today?',
+      time: '10:00 AM',
+      avatarText: 'JD',
+      avatarUrl: 'assets/images/John Doe.jpg',
+      isUnread: true,
+    ),
+
+    const Chat(
+      senderName: 'Alice',
       lastMessage: 'Sure, I will send the files.',
       time: 'Yesterday',
-      avatarText: 'MS',
+      avatarText: 'AL',
+      avatarUrl: 'assets/images/Alice.jpg',
       isUnread: false,
     ),
     const Chat(
-      senderName: 'Dr. Lee',
+      senderName: 'Bob',
       lastMessage: 'Thank you for your feedback.',
       time: 'Mon',
-      avatarText: 'DL',
+      avatarText: 'BO',
+      avatarUrl: 'assets/images/Bob.jpg',
       isUnread: true,
     ),
     const Chat(
-      senderName: 'Professor X',
+      senderName: 'Charlie',
       lastMessage: 'Meeting rescheduled to 3 PM.',
       time: 'Sun',
-      avatarText: 'PX',
+      avatarText: 'CH',
+      avatarUrl: 'assets/images/Charlie.jpg',
       isUnread: false,
     ),
     const Chat(
-      senderName: 'Student Services',
+      senderName: 'Diana',
       lastMessage: 'Your application has been approved.',
       time: '23/01',
-      avatarText: 'SS',
+      avatarText: 'DI',
+      avatarUrl: 'assets/images/Diana.jpg',
       isUnread: true,
     ),
   ];
@@ -89,6 +102,7 @@ class _InboxScreenState extends State<InboxScreen> {
                   builder: (context) => MessageConversationScreen(
                     chatUser: chat.senderName,
                     avatarText: chat.avatarText,
+                    avatarUrl: chat.avatarUrl,
                   ),
                 ),
               );

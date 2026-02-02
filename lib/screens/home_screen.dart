@@ -5,8 +5,9 @@ import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:education_app/screens/learning_screen.dart';
+import 'package:education_app/screens/notification_screen.dart';
 import 'package:education_app/widgets/course_card.dart';
-
 import '../models/course_model.dart';
 import '../models/api_course.dart';
 import '../services/course_api_service.dart';
@@ -39,8 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late final Timer _timer;
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
-
-  // 🔑 REAL DATA replaces courseData
   List<Course> _courses = [];
   bool _isLoadingCourses = true;
 
@@ -68,17 +67,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
     _pageController = PageController(initialPage: _currentPage);
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      _currentPage = (_currentPage + 1) % _promoBanners.length;
+      if (_currentPage < _promoBanners.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
       _pageController.animateToPage(
         _currentPage,
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeIn,
       );
     });
-
     _loadCourses();
   }
 
@@ -87,7 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final List<ApiCourse> apiCourses = await CourseApiService.fetchCourses(
         _token,
       );
-
       setState(() {
         _courses = apiCourses.map((api) {
           return Course(
@@ -135,25 +135,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+    setState(() {
+      _selectedIndex = index;
+    });
 
     switch (index) {
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const MyCoursesScreen()),
+          MaterialPageRoute(builder: (context) => const MyCoursesScreen()),
         );
         break;
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const InboxScreen()),
+          MaterialPageRoute(builder: (context) => const InboxScreen()),
         );
         break;
       case 3:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
         );
         break;
     }
@@ -165,17 +167,20 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(child: _buildHeader()),
+            SliverToBoxAdapter(child: _buildHeader(context)),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             SliverToBoxAdapter(child: _buildPromoBanner()),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            SliverToBoxAdapter(child: _buildCategories()),
+            SliverToBoxAdapter(child: _buildCategories(context)),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             SliverToBoxAdapter(child: _buildSectionTitle("Popular Courses")),
             _buildPopularCourses(context),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             SliverToBoxAdapter(child: _buildSectionTitle("Top Rated")),
             _buildTopRatedCourses(context),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            SliverToBoxAdapter(child: _buildSectionTitle("Our Mentors")),
+            _buildMentorSection(),
             const SliverToBoxAdapter(child: SizedBox(height: 50)),
           ],
         ),
@@ -184,19 +189,51 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
-          CircleAvatar(radius: 24),
-          SizedBox(width: 12),
-          Column(
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/John Doe.jpg',
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Good morning", style: TextStyle(color: Colors.grey)),
-              Text("John Doe", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                "John Doe",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
             ],
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              Navigator.pushNamed(context, '/filter');
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              Navigator.pushNamed(context, '/search');
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {
+              Navigator.pushNamed(context, '/notification');
+            },
           ),
         ],
       ),
@@ -204,39 +241,78 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildPromoBanner() {
-    return SizedBox(
-      height: 150,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: _promoBanners.length,
-        itemBuilder: (_, index) => _PromoBannerCard(data: _promoBanners[index]),
-      ),
+    return Column(
+      children: [
+        SizedBox(
+          height: 150,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: _promoBanners.length,
+            onPageChanged: (int page) {
+              setState(() {
+                _currentPage = page;
+              });
+            },
+            itemBuilder: (context, index) {
+              return _PromoBannerCard(data: _promoBanners[index]);
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_promoBanners.length, (index) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
+              height: 8.0,
+              width: _currentPage == index ? 24.0 : 8.0,
+              decoration: BoxDecoration(
+                color: _currentPage == index
+                    ? AppColors.primaryColor
+                    : Colors.grey,
+                borderRadius: BorderRadius.circular(4.0),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 
-  Widget _buildCategories() {
+  Widget _buildCategories(BuildContext context) {
     final categories = [
       Category(name: "Design", icon: Icons.design_services),
       Category(name: "Programming", icon: Icons.code),
       Category(name: "Health & Fitness", icon: Icons.health_and_safety),
       Category(name: "More", icon: Icons.more_horiz),
     ];
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: categories.map((c) {
-          return Column(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: const Color(0xFFE8E8FF),
-                child: Icon(c.icon, color: AppColors.primaryColor),
-              ),
-              const SizedBox(height: 8),
-              Text(c.name, style: const TextStyle(fontSize: 12)),
-            ],
+        children: categories.map((category) {
+          return GestureDetector(
+            onTap: () {
+              if (category.name == "More") {
+                Navigator.pushNamed(context, '/category');
+              }
+            },
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: const Color(0xFFE8E8FF),
+                  child: Icon(category.icon, color: AppColors.primaryColor),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  category.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
           );
         }).toList(),
       ),
@@ -245,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         title,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -339,6 +415,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildMentorSection() {
+    final mentors = [
+      {"name": "Alice", "avatar": "assets/images/Alice.jpg"},
+      {"name": "Bob", "avatar": "assets/images/Bob.jpg"},
+      {"name": "Charlie", "avatar": "assets/images/Charlie.jpg"},
+      {"name": "Diana", "avatar": "assets/images/Diana.jpg"},
+      {"name": "Eve", "avatar": "assets/images/Eve.jpg"},
+    ];
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: mentors.map((mentor) {
+            return Column(
+              children: [
+                SizedBox(
+                  width: 60, // 2 * radius
+                  height: 60, // 2 * radius
+                  child: ClipOval(
+                    child: Image.asset(
+                      mentor["avatar"] as String,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  mentor["name"] as String,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
@@ -370,28 +487,39 @@ class _PromoBannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: data.color,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            data.title,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          Text(
-            data.subtitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 32,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.title,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  data.subtitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  data.description,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
             ),
           ),
-          Text(data.description, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
