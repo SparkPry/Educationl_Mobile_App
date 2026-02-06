@@ -65,6 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
       description: api.longDescription,
       duration: api.duration,
       rating: 4.5,
+      level: api.level,
       image: api.thumbnail,
 
       overview: Overview(about: [], learn: [], requirements: [], forWho: []),

@@ -6,6 +6,7 @@ class ApiCourse {
   final String longDescription;
   final double price;
   final double? discountPrice;
+  final String level;
   final String category;
   final String thumbnail;
   final String duration;
@@ -18,6 +19,7 @@ class ApiCourse {
     required this.longDescription,
     required this.price,
     this.discountPrice,
+    required this.level,
     required this.category,
     required this.thumbnail,
     required this.duration,
@@ -34,6 +36,7 @@ class ApiCourse {
       discountPrice: json['discount_price'] != null
           ? double.parse(json['discount_price'])
           : null,
+      level: json['level'],
       category: json['category'],
       thumbnail: json['thumbnail'],
       duration: json['duration'],

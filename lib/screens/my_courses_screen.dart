@@ -1,13 +1,15 @@
+import 'package:flutter/material.dart';
+import 'package:education_app/utils/app_colors.dart';
+
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/screens/learning_screen.dart';
 
-import 'package:education_app/utils/app_colors.dart';
-import 'package:flutter/material.dart';
-
-import 'package:education_app/models/course_model.dart'; // Import Course model
-import 'package:education_app/data/course_data.dart'; // Import global course data
+import 'package:education_app/models/course_model.dart';
+import 'package:education_app/models/api_course.dart';
+import 'package:education_app/services/course_api_service.dart';
+import 'package:education_app/data/course_data.dart';
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -17,9 +19,15 @@ class MyCoursesScreen extends StatefulWidget {
 }
 
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
-  int _selectedTabIndex = 0; // Default to 'About' tab
+  int _selectedTabIndex = 0;
 
-  static const List<String> _tabTitles = ['About', 'Ongoing', 'Completed'];
+  final String _token =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
+
+  bool _isLoadingApi = true;
+  List<Course> _apiCourses = [];
+
+  static const List<String> _tabTitles = ['Course', 'Ongoing', 'Completed'];
 
   List<Course> get _ongoingCourses => courseData
       .where(
@@ -34,31 +42,63 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
       .where((course) => course.progress != null && course.progress! == 1.0)
       .toList();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadApiCourses();
+  }
+
+  // ================= API =================
+
+  Future<void> _loadApiCourses() async {
+    try {
+      final apiCourses = await CourseApiService.fetchCourses(_token);
+
+      setState(() {
+        _apiCourses = apiCourses.map(_mapApiToCourse).toList();
+        _isLoadingApi = false;
+      });
+    } catch (_) {
+      _isLoadingApi = false;
+    }
+  }
+
+  Course _mapApiToCourse(ApiCourse api) {
+    return Course(
+      id: api.id.toString(),
+      slug: api.slug,
+      title: api.title,
+      category: api.category,
+      description: api.description,
+      duration: api.duration,
+      rating: 4.6,
+      image: api.thumbnail,
+      price: api.discountPrice ?? api.price,
+      level: api.level,
+      overview: Overview(
+        about: [api.longDescription],
+        learn: const [],
+        requirements: const [],
+        forWho: const [],
+      ),
+      curriculum: const [],
+      instructor: Instructor(
+        name: 'Instructor',
+        title: api.category,
+        avatar: 'assets/images/mentor1.jpg',
+        bio: '',
+      ),
+      reviews: Reviews(total: 0, average: 4.6),
+      progress: null, // IMPORTANT
+    );
+  }
+
+  // ================= DATA SWITCH =================
+
   List<Course> get _currentCourses {
     switch (_selectedTabIndex) {
-      case 0: // About
-        // For "About" tab, return all courses but with progress set to null
-        return courseData
-            .map(
-              (course) => Course(
-                id: course.id,
-                slug: course.slug,
-                title: course.title,
-                category: course.category,
-                description: course.description,
-                duration: course.duration,
-                rating: course.rating,
-                image: course.image,
-                price: course.price,
-                overview: course.overview,
-                curriculum: course.curriculum,
-                instructor: course.instructor,
-                reviews: course.reviews,
-                progress:
-                    null, // Explicitly set progress to null for "About" tab
-              ),
-            )
-            .toList();
+      case 0:
+        return _apiCourses;
       case 1: // Ongoing
         return _ongoingCourses;
       case 2: // Completed
@@ -69,10 +109,10 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   }
 
   void _onTabTapped(int index) {
-    setState(() {
-      _selectedTabIndex = index;
-    });
+    setState(() => _selectedTabIndex = index);
   }
+
+  // ================= UI =================
 
   @override
   Widget build(BuildContext context) {
@@ -82,16 +122,14 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         backgroundColor: const Color(0xFFF6F6F6),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomeScreen()),
+          ),
         ),
         centerTitle: true,
-        title: Text(
+        title: const Text(
           'My Courses',
           style: TextStyle(
             color: Colors.black,
@@ -100,62 +138,86 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
           ),
         ),
       ),
-      body: Column(
+      // icon bottom
+      body: Stack(
         children: [
-          // Tab Row
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_tabTitles.length, (index) {
-                return GestureDetector(
-                  onTap: () => _onTabTapped(index),
-                  child: _TabItem(
-                    title: _tabTitles[index],
-                    isActive: _selectedTabIndex == index,
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Course List
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: _currentCourses.length,
-              separatorBuilder: (context, index) => Column(
-                children: [
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Container(height: 1, color: Colors.grey.shade300),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+          Column(
+            children: [
+              // ---- EXISTING BODY CONTENT (UNCHANGED) ----
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: List.generate(_tabTitles.length, (index) {
+                    return GestureDetector(
+                      onTap: () => _onTabTapped(index),
+                      child: _TabItem(
+                        title: _tabTitles[index],
+                        isActive: _selectedTabIndex == index,
+                      ),
+                    );
+                  }),
+                ),
               ),
-              itemBuilder: (context, index) {
-                final course = _currentCourses[index];
-                return _CourseCard(
-                  course: course, // Pass the Course object directly
-                );
-              },
-            ),
+              const SizedBox(height: 12),
+
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _currentCourses.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final course = _currentCourses[index];
+                    return _CourseCard(course: course);
+                  },
+                ),
+              ),
+            ],
           ),
+
+          // 👇 FILTER BUTTON (ONLY FOR COURSE TAB)
+          if (_selectedTabIndex == 0)
+            Positioned(
+              right: 20,
+              bottom: 20, // above bottom nav
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/filter');
+                },
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 53, 147, 160),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.filter_list,
+                    color: AppColors.primaryColor,
+                    size: 40,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
 
-      // Bottom Navigation Bar
+      // ---------- BOTTOM NAV ----------
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 1,
         selectedItemColor: AppColors.primaryColor,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
@@ -172,28 +234,21 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
           ),
         ],
         onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-              break;
-            case 1:
-              // Current screen, do nothing
-              break;
-            case 2:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const InboxScreen()),
-              );
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-              break;
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => HomeScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const InboxScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            );
           }
         },
       ),
@@ -201,26 +256,24 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   }
 }
 
-// -------------------- TAB ITEM --------------------
+// ================= TAB ITEM =================
 
 class _TabItem extends StatelessWidget {
   final String title;
   final bool isActive;
 
-  const _TabItem({required this.title, this.isActive = false});
+  const _TabItem({required this.title, required this.isActive});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
           style: TextStyle(
             color: isActive ? AppColors.primaryColor : Colors.grey.shade700,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'Roboto',
             fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 6),
@@ -238,10 +291,10 @@ class _TabItem extends StatelessWidget {
   }
 }
 
-// -------------------- COURSE CARD --------------------
+// ================= COURSE CARD =================
 
 class _CourseCard extends StatelessWidget {
-  final Course course; // Change to accept Course object
+  final Course course;
 
   const _CourseCard({required this.course});
 
@@ -251,10 +304,7 @@ class _CourseCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LearningScreen()),
-        );
+        Navigator.pushNamed(context, '/course', arguments: course);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -264,127 +314,78 @@ class _CourseCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Avatar Container
+            // ---------- IMAGE (API + MOCK SAFE) ----------
             Container(
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.primaryColor.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
+                color: AppColors.primaryColor.withOpacity(0.1),
               ),
-              // Directly use Image.asset here
-              child: Image.asset(
-                course.image, // Use course image
-                fit: BoxFit.cover,
-                alignment: Alignment.center, // Center the course image
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback to initials if image fails
-                  return Center(
-                    child: Text(
-                      course.title
-                          .split(' ')
-                          .map((e) => e[0])
-                          .join(), // Initials from course title
-                      style: TextStyle(
-                        color: AppColors.primaryColor,
-                        fontSize: 24,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: course.image.startsWith('http')
+                    ? Image.network(
+                        course.image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imageFallback(course),
+                      )
+                    : Image.asset(
+                        course.image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imageFallback(course),
                       ),
-                    ),
-                  );
-                },
               ),
             ),
 
             const SizedBox(width: 12),
 
-            // Text Column
+            // ---------- TEXT ----------
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    course.title, // Use course title
+                    course.title,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      fontFamily: 'Roboto',
-                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Text(
-                        course.instructor.name, // Use instructor name
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                          fontFamily: 'Roboto',
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          '|',
-                          style: TextStyle(
-                            color: Colors.grey.shade300,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        course.category, // Use course category
-                        style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto',
-                        ),
-                      ),
-                    ],
+                  Text(
+                    '${course.instructor.name} | ${course.category}',
+                    style: TextStyle(color: Colors.grey.shade600),
                   ),
+
+                  // ---------- PROGRESS (MOCK ONLY) ----------
                   if (showProgress) ...[
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'Progress',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 13,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${(course.progress! * 100).round()}%', // Use course progress
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            fontFamily: 'Roboto',
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: LinearProgressIndicator(
-                        value: course.progress, // Use course progress
-                        backgroundColor: Colors.grey.shade300,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryColor,
-                        ),
-                        minHeight: 6,
-                      ),
+                    LinearProgressIndicator(
+                      value: course.progress,
+                      minHeight: 6,
+                      color: AppColors.primaryColor,
+                      backgroundColor: Colors.grey.shade300,
                     ),
                   ],
                 ],
               ),
             ),
-
-            Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade400),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ---------- FALLBACK ----------
+  Widget _imageFallback(Course course) {
+    return Center(
+      child: Text(
+        course.title.split(' ').map((e) => e[0]).take(2).join(),
+        style: TextStyle(
+          color: AppColors.primaryColor,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

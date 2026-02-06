@@ -12,6 +12,7 @@ final List<Course> courseData = [
     rating: 4.5,
     image: 'assets/images/Flutter.png',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: [
         'Learn the fundamentals of Dart programming.',
@@ -90,6 +91,7 @@ final List<Course> courseData = [
     rating: 4.8,
     image: 'assets/images/DataScientCourseImage.jpg',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: [
         'Learn the fundamentals of Python programming for data science.',
@@ -170,6 +172,7 @@ final List<Course> courseData = [
     rating: 4.9,
     image: 'assets/images/UI UX.png',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: [
         'Learn the fundamentals of UI/UX design.',
@@ -230,6 +233,7 @@ final List<Course> courseData = [
     rating: 4.7,
     image: 'assets/images/Digital marketing.jpg',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: [
         'Learn the fundamentals of digital marketing.',
@@ -290,6 +294,7 @@ final List<Course> courseData = [
     duration: '3.5 hours',
     rating: 4.6,
     price: 12,
+    level: 'beginner',
     image: 'assets/images/Web development.png',
     overview: Overview(
       about: [
@@ -345,6 +350,7 @@ final List<Course> courseData = [
     duration: '5 hours',
     rating: 4.9,
     price: 12.00,
+    level: 'beginner',
     image: 'assets/images/Flutter.png',
     overview: Overview(
       about: [
@@ -401,6 +407,7 @@ final List<Course> courseData = [
     rating: 4.8,
     image: 'assets/images/Machine learning with python.jpg',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: [
         'Gain a solid understanding of machine learning principles.',
@@ -457,6 +464,7 @@ final List<Course> courseData = [
     rating: 4.8,
     image: 'assets/images/advance python.jpg',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: ['Advanced Python concepts'],
       learn: ['Advanced Python'],
@@ -483,6 +491,7 @@ final List<Course> courseData = [
     rating: 4.9,
     image: 'assets/images/Flutter.png',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: ['Flutter testing concepts'],
       learn: ['Unit, widget, and integration testing'],
@@ -510,6 +519,7 @@ final List<Course> courseData = [
     rating: 4.8,
     image: 'assets/images/DataScientCourseImage.jpg',
     price: 12.00,
+    level: 'beginner',
     overview: Overview(
       about: ['Data visualization concepts'],
       learn: ['Matplotlib and Seaborn'],

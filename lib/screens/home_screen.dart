@@ -5,8 +5,7 @@ import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
-import 'package:education_app/screens/learning_screen.dart';
-import 'package:education_app/screens/notification_screen.dart';
+
 import 'package:education_app/widgets/course_card.dart';
 import '../models/course_model.dart';
 import '../models/api_course.dart';
@@ -88,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final List<ApiCourse> apiCourses = await CourseApiService.fetchCourses(
         _token,
       );
+
       setState(() {
         _courses = apiCourses.map((api) {
           return Course(
@@ -100,8 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
             rating: 4.5,
             image: api.thumbnail,
             price: api.discountPrice ?? api.price,
+            level: api.level,
             overview: Overview(
-              about: [],
+              about: [api.longDescription], // ✅ better for About tab
               learn: [],
               requirements: [],
               forWho: [],

@@ -13,6 +13,8 @@ class Course {
   final Reviews reviews;
   final double? progress; // Added for progress tracking
   final double price;
+  final String level;
+  final double? discountPrice;
 
   Course({
     required this.id,
@@ -23,11 +25,13 @@ class Course {
     required this.duration,
     required this.rating,
     required this.image,
+    this.discountPrice,
     required this.overview,
     required this.curriculum,
     required this.instructor,
     required this.reviews,
     required this.price,
+    required this.level,
     this.progress, // Added to constructor
   });
 }

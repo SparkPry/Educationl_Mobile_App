@@ -89,12 +89,40 @@ class _CourseScreenState extends State<CourseScreen>
                       /// TITLE
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          course.title,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // TITLE
+                            Expanded(
+                              child: Text(
+                                course.title,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+
+                            // 🔥 LEVEL BADGE
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6B66FF).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                course.level,
+                                style: const TextStyle(
+                                  color: Color(0xFF6B66FF),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
@@ -213,6 +241,7 @@ class _CourseScreenState extends State<CourseScreen>
                       },
                       child: Text(
                         'Enroll Course \$${course.price}',
+
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -285,22 +314,52 @@ class _CourseScreenState extends State<CourseScreen>
                     ? NetworkImage(course.instructor.avatar)
                     : AssetImage(course.instructor.avatar) as ImageProvider,
               ),
+
               const SizedBox(width: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    course.instructor.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+
+              // -------- NAME + TITLE --------
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.instructor.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    Text(
+                      course.instructor.title,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+
+              // -------- PRICE --------
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(
+                    255,
+                    30,
+                    24,
+                    201,
+                  ).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '\$${course.price}',
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 33, 33, 36),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
-                  Text(
-                    course.instructor.title,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
+                ),
               ),
             ],
           ),

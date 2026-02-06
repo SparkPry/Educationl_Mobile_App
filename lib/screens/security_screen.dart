@@ -168,14 +168,16 @@ class _SecurityScreenState extends State<SecurityScreen> {
       subtitle: subtext != null
           ? Text(
               subtext,
-              style: const TextStyle(
-                color: kPrimaryTextColor,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: kPrimaryTextColor, fontSize: 14),
             )
           : null,
       trailing:
-          trailing ?? const Icon(Icons.arrow_forward_ios, color: kPrimaryTextColor, size: 16),
+          trailing ??
+          const Icon(
+            Icons.arrow_forward_ios,
+            color: kPrimaryTextColor,
+            size: 16,
+          ),
       onTap: () {
         // Handle tap
       },
