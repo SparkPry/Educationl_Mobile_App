@@ -11,7 +11,9 @@ class FilterScreen extends StatefulWidget {
 class _FilterScreenState extends State<FilterScreen> {
   String _selectedCategory = 'All';
   String _selectedLevel = 'All';
-  // String _selectedDuration = '0–3 hours';
+  RangeValues _priceRange = const RangeValues(50, 300);
+  int _rating = 0;
+  String _selectedDuration = '0–3 hours';
 
   @override
   Widget build(BuildContext context) {
@@ -27,22 +29,29 @@ class _FilterScreenState extends State<FilterScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle('Category'),
-                  _buildCategoryChips(),
-                  const SizedBox(height: 24),
-
-                  _buildSectionTitle('Level'),
-                  _buildLevelChips(),
-                  const SizedBox(height: 24),
-
-                  // _buildSectionTitle('Duration'),
-                  // _buildDurationChips(),
-                  // const SizedBox(height: 32),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildSectionTitle('Category'),
+                    _buildCategoryChips(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Level'),
+                    _buildLevelChips(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Price Range'),
+                    _buildPriceRangeSlider(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Rating'),
+                    _buildRatingStars(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Duration'),
+                    _buildDurationChips(),
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             ),
           ),
@@ -52,15 +61,13 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  // ================= APP BAR =================
-
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => Navigator.of(context).pop(),
       ),
       title: const Text(
         'Filter',
@@ -73,7 +80,9 @@ class _FilterScreenState extends State<FilterScreen> {
             setState(() {
               _selectedCategory = 'All';
               _selectedLevel = 'All';
-              // _selectedDuration = '0–3 hours';
+              _priceRange = const RangeValues(50, 300);
+              _rating = 0;
+              _selectedDuration = '0–3 hours';
             });
           },
           child: const Text(
@@ -85,11 +94,9 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  // ================= SECTIONS =================
-
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -97,110 +104,173 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  // ================= CATEGORY =================
-
   Widget _buildCategoryChips() {
     final categories = [
       'All',
       'Programming',
       'Mobile Development',
       'Web Development',
+      'Frontend Development',
       'Backend Development',
-      'Design',
+      'Database',
     ];
-
     return Wrap(
       spacing: 8,
       children: categories.map((category) {
-        final isSelected = _selectedCategory == category;
-
         return ChoiceChip(
           label: Text(category),
-          selected: isSelected,
-          onSelected: (_) {
-            setState(() => _selectedCategory = category);
+          selected: _selectedCategory == category,
+          onSelected: (selected) {
+            if (selected) {
+              setState(() {
+                _selectedCategory = category;
+              });
+            }
           },
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.lightBlue[50],
+          selectedColor: Colors.blue,
           labelStyle: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: _selectedCategory == category ? Colors.white : Colors.black,
+          ),
+          backgroundColor: Colors.lightBlue[50],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.transparent),
           ),
         );
       }).toList(),
     );
   }
-
-  // ================= LEVEL =================
 
   Widget _buildLevelChips() {
-    final levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
-
+    final levels = ['All', 'Beginner', 'Intermediate', 'Advance', 'Business'];
     return Wrap(
-      spacing: 8,
+      spacing: 8.0,
       children: levels.map((level) {
-        final isSelected = _selectedLevel == level;
-
         return ChoiceChip(
           label: Text(level),
-          selected: isSelected,
-          onSelected: (_) {
-            setState(() => _selectedLevel = level);
+          selected: _selectedLevel == level,
+          onSelected: (selected) {
+            if (selected) {
+              setState(() {
+                _selectedLevel = level;
+              });
+            }
           },
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.lightBlue[50],
+          selectedColor: Colors.blue,
           labelStyle: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: _selectedLevel == level ? Colors.white : Colors.black,
+          ),
+          backgroundColor: Colors.lightBlue[50],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.transparent),
           ),
         );
       }).toList(),
     );
   }
 
-  // // ================= DURATION =================
+  Widget _buildPriceRangeSlider() {
+    return Column(
+      children: [
+        RangeSlider(
+          values: _priceRange,
+          min: 50,
+          max: 300,
+          divisions: 50,
+          labels: RangeLabels(
+            '\$${_priceRange.start.round()}',
+            '\$${_priceRange.end.round()}',
+          ),
+          onChanged: (values) {
+            setState(() {
+              _priceRange = values;
+            });
+          },
+          activeColor: Colors.blue,
+          inactiveColor: Colors.grey[300],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('\$${_priceRange.start.round()}'),
+              Text('\$${_priceRange.end.round()}'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-  // Widget _buildDurationChips() {
-  //   final durations = ['0–3 hours', '4–7 hours', '8–17 hours', '17+ hours'];
+  Widget _buildRatingStars() {
+    return Row(
+      children: [
+        ...List.generate(5, (index) {
+          return IconButton(
+            icon: Icon(
+              index < _rating ? Icons.star : Icons.star_border,
+              color: index < _rating ? Colors.orange : Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _rating = index + 1;
+              });
+            },
+          );
+        }),
+        const SizedBox(width: 8),
+        Text('${_rating}/5', style: const TextStyle(fontSize: 16)),
+      ],
+    );
+  }
 
-  //   return Wrap(
-  //     spacing: 8,
-  //     children: durations.map((duration) {
-  //       final isSelected = _selectedDuration == duration;
-
-  //       return ChoiceChip(
-  //         label: Text(duration),
-  //         selected: isSelected,
-  //         onSelected: (_) {
-  //           setState(() => _selectedDuration = duration);
-  //         },
-  //         selectedColor: AppColors.primaryColor,
-  //         backgroundColor: Colors.lightBlue[50],
-  //         labelStyle: TextStyle(
-  //           color: isSelected ? Colors.white : Colors.black,
-  //         ),
-  //       );
-  //     }).toList(),
-  //   );
-  // }
-
-  // ================= APPLY =================
+  Widget _buildDurationChips() {
+    final durations = ['0–3 hours', '4–7 hours', '8–17 hours', '17–3...'];
+    return Wrap(
+      spacing: 8.0,
+      children: durations.map((duration) {
+        return ChoiceChip(
+          label: Text(duration),
+          selected: _selectedDuration == duration,
+          onSelected: (selected) {
+            if (selected) {
+              setState(() {
+                _selectedDuration = duration;
+              });
+            }
+          },
+          selectedColor: Colors.blue,
+          labelStyle: TextStyle(
+            color: _selectedDuration == duration ? Colors.white : Colors.black,
+          ),
+          backgroundColor: Colors.lightBlue[50],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.transparent),
+          ),
+        );
+      }).toList(),
+    );
+  }
 
   Widget _buildApplyButton() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: () {
           Navigator.pop(context, {
-            'category': _selectedCategory == 'All' ? null : _selectedCategory,
-            'level': _selectedLevel == 'All' ? null : _selectedLevel,
-            // 'duration': _selectedDuration,
+            'category': _selectedCategory,
+            'level': _selectedLevel,
           });
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
-          minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          minimumSize: const Size(double.infinity, 50),
         ),
         child: const Text(
           'Apply',

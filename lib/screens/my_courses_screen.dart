@@ -4,7 +4,6 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
-import 'package:education_app/screens/learning_screen.dart';
 
 import 'package:education_app/models/course_model.dart';
 import 'package:education_app/models/api_course.dart';
@@ -24,11 +23,18 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
 
-  bool _isLoadingApi = true;
+  // ---------- API DATA ----------
   List<Course> _apiCourses = [];
+  List<Course> _filteredCourses = [];
+  bool _isLoadingApi = true;
+
+  // ---------- FILTER STATE ----------
+  String _selectedCategory = 'All';
+  String _selectedLevel = 'All';
 
   static const List<String> _tabTitles = ['Course', 'Ongoing', 'Completed'];
 
+  // ---------- MOCK DATA ----------
   List<Course> get _ongoingCourses => courseData
       .where(
         (course) =>
@@ -54,12 +60,18 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
     try {
       final apiCourses = await CourseApiService.fetchCourses(_token);
 
+      if (!mounted) return;
+
+      final mapped = apiCourses.map(_mapApiToCourse).toList();
+
       setState(() {
-        _apiCourses = apiCourses.map(_mapApiToCourse).toList();
+        _apiCourses = mapped;
+        _filteredCourses = mapped; // 👈 initial = all
         _isLoadingApi = false;
       });
     } catch (_) {
-      _isLoadingApi = false;
+      if (!mounted) return;
+      setState(() => _isLoadingApi = false);
     }
   }
 
@@ -89,8 +101,30 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         bio: '',
       ),
       reviews: Reviews(total: 0, average: 4.6),
-      progress: null, // IMPORTANT
+      progress: null,
     );
+  }
+
+  // ================= FILTER LOGIC =================
+
+  void _applyFilter({required String category, required String level}) {
+    List<Course> result = _apiCourses;
+
+    if (category != 'All') {
+      result = result.where((course) {
+        return course.category.toLowerCase() == category.toLowerCase();
+      }).toList();
+    }
+
+    if (level != 'All') {
+      result = result.where((course) {
+        return course.level.toLowerCase() == level.toLowerCase();
+      }).toList();
+    }
+
+    setState(() {
+      _filteredCourses = result;
+    });
   }
 
   // ================= DATA SWITCH =================
@@ -98,10 +132,10 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   List<Course> get _currentCourses {
     switch (_selectedTabIndex) {
       case 0:
-        return _apiCourses;
-      case 1: // Ongoing
+        return _filteredCourses; // ✅ FILTERED API
+      case 1:
         return _ongoingCourses;
-      case 2: // Completed
+      case 2:
         return _completedCourses;
       default:
         return [];
@@ -131,19 +165,13 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         centerTitle: true,
         title: const Text(
           'My Courses',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'Roboto',
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
-      // icon bottom
       body: Stack(
         children: [
           Column(
             children: [
-              // ---- EXISTING BODY CONTENT (UNCHANGED) ----
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -165,54 +193,49 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               const SizedBox(height: 12),
 
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _currentCourses.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final course = _currentCourses[index];
-                    return _CourseCard(course: course);
-                  },
-                ),
+                child: _isLoadingApi && _selectedTabIndex == 0
+                    ? const Center(child: CircularProgressIndicator())
+                    : _currentCourses.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No courses available',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _currentCourses.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (_, index) =>
+                            _CourseCard(course: _currentCourses[index]),
+                      ),
               ),
             ],
           ),
 
-          // 👇 FILTER BUTTON (ONLY FOR COURSE TAB)
+          // ---------- FILTER BUTTON ----------
           if (_selectedTabIndex == 0)
             Positioned(
               right: 20,
-              bottom: 20, // above bottom nav
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/filter');
+              bottom: 20,
+              child: FloatingActionButton(
+                backgroundColor: AppColors.primaryColor,
+                child: const Icon(Icons.filter_list),
+                onPressed: () async {
+                  final result = await Navigator.pushNamed(context, '/filter');
+
+                  if (result is Map) {
+                    _applyFilter(
+                      category: result['category'] ?? 'All',
+                      level: result['level'] ?? 'All',
+                    );
+                  }
                 },
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 53, 147, 160),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.filter_list,
-                    color: AppColors.primaryColor,
-                    size: 40,
-                  ),
-                ),
               ),
             ),
         ],
       ),
 
-      // ---------- BOTTOM NAV ----------
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 1,
         selectedItemColor: AppColors.primaryColor,
@@ -271,7 +294,7 @@ class _TabItem extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-            color: isActive ? AppColors.primaryColor : Colors.grey.shade700,
+            color: isActive ? AppColors.primaryColor : Colors.grey,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -300,12 +323,8 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool showProgress = course.progress != null && course.progress! > 0;
-
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, '/course', arguments: course);
-      },
+      onTap: () => Navigator.pushNamed(context, '/course', arguments: course),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -314,33 +333,23 @@ class _CourseCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ---------- IMAGE (API + MOCK SAFE) ----------
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: AppColors.primaryColor.withOpacity(0.1),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: course.image.startsWith('http')
-                    ? Image.network(
-                        course.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imageFallback(course),
-                      )
-                    : Image.asset(
-                        course.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imageFallback(course),
-                      ),
-              ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: course.image.startsWith('http')
+                  ? Image.network(
+                      course.image,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      course.image,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                    ),
             ),
-
             const SizedBox(width: 12),
-
-            // ---------- TEXT ----------
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,44 +357,19 @@ class _CourseCard extends StatelessWidget {
                   Text(
                     course.title,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     '${course.instructor.name} | ${course.category}',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: const TextStyle(color: Colors.grey),
                   ),
-
-                  // ---------- PROGRESS (MOCK ONLY) ----------
-                  if (showProgress) ...[
-                    const SizedBox(height: 10),
-                    LinearProgressIndicator(
-                      value: course.progress,
-                      minHeight: 6,
-                      color: AppColors.primaryColor,
-                      backgroundColor: Colors.grey.shade300,
-                    ),
-                  ],
                 ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // ---------- FALLBACK ----------
-  Widget _imageFallback(Course course) {
-    return Center(
-      child: Text(
-        course.title.split(' ').map((e) => e[0]).take(2).join(),
-        style: TextStyle(
-          color: AppColors.primaryColor,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
