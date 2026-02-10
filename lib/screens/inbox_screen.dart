@@ -125,7 +125,7 @@ class _InboxScreenState extends State<InboxScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book),
-            label: 'My Courses',
+            label: 'Courses',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.mail_outline),

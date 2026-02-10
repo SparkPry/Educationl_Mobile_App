@@ -32,7 +32,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   String _selectedCategory = 'All';
   String _selectedLevel = 'All';
 
-  static const List<String> _tabTitles = ['Course', 'Ongoing', 'Completed'];
+  static const List<String> _tabTitles = ['All Course', 'Ongoing', 'Completed'];
 
   // ---------- MOCK DATA ----------
   List<Course> get _ongoingCourses => courseData
@@ -164,7 +164,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         ),
         centerTitle: true,
         title: const Text(
-          'My Courses',
+          'Courses',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -245,7 +245,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book),
-            label: 'My Courses',
+            label: 'Courses',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.mail_outline),

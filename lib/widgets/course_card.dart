@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/course_model.dart';
 
-
 class CourseCard extends StatelessWidget {
   final Course course;
 
@@ -17,10 +16,13 @@ class CourseCard extends StatelessWidget {
         margin: const EdgeInsets.only(left: 16),
         child: Card(
           clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ---------- IMAGE ----------
               Expanded(
                 flex: 2,
                 child: course.image.startsWith('http')
@@ -36,24 +38,31 @@ class CourseCard extends StatelessWidget {
                         course.image,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        alignment: Alignment.center,
                         errorBuilder: (_, __, ___) =>
                             const Icon(Icons.image_not_supported),
                       ),
               ),
 
+              // ---------- CONTENT ----------
               Expanded(
                 flex: 3,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // CATEGORY
                       Text(
                         course.category,
-                        style: const TextStyle(color: Colors.grey, fontSize: 10),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                        ),
                       ),
+
                       const SizedBox(height: 4),
+
+                      // TITLE
                       Text(
                         course.title,
                         style: const TextStyle(
@@ -63,44 +72,62 @@ class CourseCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+
                       const SizedBox(height: 4),
+
+                      // SHORT DESCRIPTION
+                      Text(
+                        course.description,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // DURATION
                       Row(
                         children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                          Text(
-                            " ${course.rating}",
-                            style: const TextStyle(fontSize: 12),
+                          const Icon(
+                            Icons.schedule,
+                            size: 14,
+                            color: Colors.black,
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.person, color: Colors.grey, size: 16),
+                          const SizedBox(width: 4),
                           Text(
-                            " ${course.reviews.total}",
-                            style: const TextStyle(fontSize: 12),
+                            course.duration,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black,
+                            ),
                           ),
                         ],
                       ),
+
                       const Spacer(),
+
+                      // INSTRUCTOR
                       Row(
                         children: [
                           CircleAvatar(
                             radius: 12,
-                            child: ClipOval(
-                              child: Image.asset(
-                                course.instructor.avatar,
-                                fit: BoxFit.cover,
-                                width: 24,
-                                height: 24,
-                                alignment: Alignment.topCenter, // Add alignment here
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.person, size: 12);
-                                },
-                              ),
-                            ),
+                            backgroundColor: Colors.grey.shade200,
+                            backgroundImage:
+                                course.instructor.avatar.startsWith('http')
+                                ? NetworkImage(course.instructor.avatar)
+                                : AssetImage(course.instructor.avatar)
+                                      as ImageProvider,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            course.instructor.name,
-                            style: const TextStyle(fontSize: 12),
+                          Expanded(
+                            child: Text(
+                              course.instructor.name,
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),

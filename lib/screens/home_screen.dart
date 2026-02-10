@@ -40,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
   List<Course> _courses = [];
+  List<Course> _topRatedSnapshot = [];
+
   bool _isLoadingCourses = true;
 
   final List<_PromoBannerData> _promoBanners = [
@@ -88,36 +90,44 @@ class _HomeScreenState extends State<HomeScreen> {
         _token,
       );
 
-      setState(() {
-        _courses = apiCourses.map((api) {
-          return Course(
-            id: api.id.toString(),
-            slug: api.title.toLowerCase().replaceAll(' ', '-'),
-            title: api.title,
-            category: api.category,
-            description: api.longDescription,
-            duration: api.duration,
-            rating: 4.5,
-            image: api.thumbnail,
-            price: api.discountPrice ?? api.price,
-            level: api.level,
-            overview: Overview(
-              about: [api.longDescription], // ✅ better for About tab
-              learn: [],
-              requirements: [],
-              forWho: [],
-            ),
-            curriculum: [],
-            instructor: Instructor(
-              name: 'Instructor',
-              title: 'Teacher',
-              avatar: 'assets/images/mentor1.jpg',
-              bio: '',
-            ),
-            reviews: Reviews(total: 0, average: 4.5),
-          );
-        }).toList();
+      // 1️⃣ Map API → Course ONCE
+      final List<Course> mappedCourses = apiCourses.map((api) {
+        return Course(
+          id: api.id.toString(),
+          slug: api.title.toLowerCase().replaceAll(' ', '-'),
+          title: api.title,
+          category: api.category,
+          description: api.longDescription,
+          duration: api.duration,
+          rating: 4.5, // mock
+          image: api.thumbnail,
+          price: api.discountPrice ?? api.price,
+          level: api.level,
+          overview: Overview(
+            about: [api.longDescription],
+            learn: [],
+            requirements: [],
+            forWho: [],
+          ),
+          curriculum: [],
+          instructor: Instructor(
+            name: 'AngkorEdu',
+            title: 'Teacher',
+            avatar:
+                'https://i.pinimg.com/736x/b7/31/2b/b7312b36fa5139575f8cff445780c849.jpg',
+            bio: '',
+          ),
+          reviews: Reviews(total: 0, average: 4.5),
+        );
+      }).toList();
+      final shuffled = List<Course>.from(mappedCourses)..shuffle();
+      final randomFour = shuffled.length > 4
+          ? shuffled.take(4).toList()
+          : shuffled;
 
+      setState(() {
+        _courses = mappedCourses;
+        _topRatedSnapshot = randomFour; // ✅ FIXED SET
         _isLoadingCourses = false;
       });
     } catch (e) {
@@ -174,7 +184,17 @@ class _HomeScreenState extends State<HomeScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             SliverToBoxAdapter(child: _buildCategories(context)),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            SliverToBoxAdapter(child: _buildSectionTitle("Popular Courses")),
+            SliverToBoxAdapter(
+              child: _buildSectionTitle(
+                "Popular Courses",
+                onSeeAll: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyCoursesScreen()),
+                  );
+                },
+              ),
+            ),
             _buildPopularCourses(context),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             SliverToBoxAdapter(child: _buildSectionTitle("Top Rated")),
@@ -320,12 +340,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, {VoidCallback? onSeeAll}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+
+          if (onSeeAll != null)
+            GestureDetector(
+              onTap: onSeeAll,
+              child: const Text(
+                'See all',
+                style: TextStyle(
+                  color: Color(0xFF6B66FF),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -348,7 +385,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-
+    final popularCourses = _courses.length > 4
+        ? _courses.take(4).toList()
+        : _courses;
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 16 * 3) / 2;
 
@@ -357,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
         height: cardWidth / 0.7 + 32,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: _courses.length,
+          itemCount: popularCourses.length,
           itemBuilder: (context, index) {
             final course = _courses[index];
             return SizedBox(
@@ -382,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (_courses.isEmpty) {
+    if (_topRatedSnapshot.isEmpty) {
       return const SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.all(16),
@@ -404,14 +443,14 @@ class _HomeScreenState extends State<HomeScreen> {
           childAspectRatio: 0.7,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
-          final course = _courses[index];
+          final course = _topRatedSnapshot[index];
           return GestureDetector(
             onTap: () {
               Navigator.pushNamed(context, '/course', arguments: course);
             },
             child: CourseCard(course: course),
           );
-        }, childCount: _courses.length),
+        }, childCount: _topRatedSnapshot.length),
       ),
     );
   }
@@ -466,10 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: _onItemTapped,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.menu_book),
-          label: "My Courses",
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Courses"),
         BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: "Inbox"),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
