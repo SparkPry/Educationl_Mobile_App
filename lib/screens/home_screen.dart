@@ -90,6 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _token,
       );
 
+      if (!mounted) return;
+
       // 1️⃣ Map API → Course ONCE
       final List<Course> mappedCourses = apiCourses.map((api) {
         return Course(
@@ -131,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoadingCourses = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoadingCourses = false;
       });
