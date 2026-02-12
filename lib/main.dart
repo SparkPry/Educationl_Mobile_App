@@ -4,6 +4,7 @@ import 'package:education_app/screens/filter_screen.dart';
 import 'package:education_app/screens/forgot_password_screen.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:education_app/screens/new_password_screen.dart';
 import 'package:education_app/screens/notification_screen.dart';
@@ -20,6 +21,16 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  Future<Widget> _getInitialScreen() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token != null) {
+      return const HomeScreen();
+    } else {
+      return const LoginScreen();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +42,25 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/',
+
+      home: FutureBuilder<Widget>(
+        future: _getInitialScreen(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen(); // show splash while checking
+          }
+
+          if (snapshot.hasData) {
+            return snapshot.data!;
+          }
+
+          return const LoginScreen();
+        },
+      ),
+
       routes: {
-        '/': (context) => const SplashScreen(),
-        '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => const HomeScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
         '/new_password': (context) => const NewPasswordScreen(),
         '/verification': (context) => const VerificationScreen(),
@@ -45,6 +69,7 @@ class MyApp extends StatelessWidget {
         '/category': (context) => const CategoryScreen(),
         '/course': (context) => const CourseScreen(),
         '/filter': (context) => const FilterScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
       },
     );
   }
