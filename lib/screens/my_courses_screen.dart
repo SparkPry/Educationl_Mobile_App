@@ -4,11 +4,9 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
-
+import 'package:education_app/screens/learning_screen.dart';
 import 'package:education_app/models/course_model.dart';
-import 'package:education_app/models/api_course.dart';
 import 'package:education_app/services/course_api_service.dart';
-import 'package:education_app/data/course_data.dart';
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -20,6 +18,7 @@ class MyCoursesScreen extends StatefulWidget {
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
   int _selectedTabIndex = 0;
   final Set<String> _ongoingCourseIds = {'9', '13', '15'};
+
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
 
@@ -27,10 +26,6 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   List<Course> _apiCourses = [];
   List<Course> _filteredCourses = [];
   bool _isLoadingApi = true;
-
-  // ---------- FILTER STATE ----------
-  String _selectedCategory = 'All';
-  String _selectedLevel = 'All';
 
   static const List<String> _tabTitles = ['All Course', 'Ongoing', 'Completed'];
 
@@ -66,9 +61,30 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         .toList();
   }
 
-  List<Course> get _completedCourses => courseData
-      .where((course) => course.progress != null && course.progress! == 1.0)
-      .toList();
+  List<Course> get _completedCourses {
+    return _apiCourses.where((course) => course.id == '16').map((course) {
+      return Course(
+        id: course.id,
+        slug: course.slug,
+        title: course.title,
+        category: course.category,
+        description: course.description,
+        duration: course.duration,
+        rating: course.rating,
+        image: course.image,
+        price: course.price,
+        discountPrice: course.discountPrice,
+        level: course.level,
+        overview: course.overview,
+        curriculum: course.curriculum,
+        instructor: course.instructor,
+        reviews: course.reviews,
+
+        // ✅ Completed = 100%
+        progress: 1.0,
+      );
+    }).toList();
+  }
 
   // ================= API =================
 
@@ -113,14 +129,14 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         );
       }).toList();
 
-      if (!mounted) return;
+      // if (!mounted) return;
 
       setState(() {
         _apiCourses = mapped;
         _isLoadingApi = false;
       });
     } catch (_) {
-      if (!mounted) return;
+      // if (!mounted) return;
       setState(() => _isLoadingApi = false);
     }
   }
@@ -227,10 +243,32 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                         padding: const EdgeInsets.all(16),
                         itemCount: _currentCourses.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 16),
-                        itemBuilder: (_, index) => _CourseCard(
-                          course: _currentCourses[index],
-                          canTap: _selectedTabIndex == 0,
-                        ),
+                        itemBuilder: (_, index) {
+                          final course = _currentCourses[index];
+
+                          return GestureDetector(
+                            onTap: () {
+                              if (_selectedTabIndex == 0) {
+                                // ✅ All Course → CourseScreen
+                                Navigator.pushNamed(
+                                  context,
+                                  '/course',
+                                  arguments: course,
+                                );
+                              } else {
+                                // ✅ Ongoing → LearningScreen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        LearningScreen(course: course),
+                                  ),
+                                );
+                              }
+                            },
+                            child: _CourseCard(course: course),
+                          );
+                        },
                       ),
               ),
             ],
@@ -341,8 +379,9 @@ class _TabItem extends StatelessWidget {
 
 class _CourseCard extends StatelessWidget {
   final Course course;
-  final bool canTap;
-  const _CourseCard({required this.course, required this.canTap});
+
+  const _CourseCard({required this.course});
+
   Widget _courseImage() {
     if (course.image.startsWith('http')) {
       return Image.network(
@@ -360,21 +399,19 @@ class _CourseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool showProgress = course.progress != null;
 
-    final card = Container(
+    return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: _courseImage(),
           ),
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,43 +428,13 @@ class _CourseCard extends StatelessWidget {
                   '${course.instructor.name} | ${course.category}',
                   style: const TextStyle(color: Colors.grey),
                 ),
-
-                // 🔥 PROGRESS SECTION
                 if (showProgress) ...[
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      const Text(
-                        "Progress",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color.fromARGB(255, 24, 23, 23),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${(course.progress! * 100).round()}%',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: course.progress,
-                      backgroundColor: Colors.grey.shade300,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primaryColor,
-                      ),
-                      minHeight: 6,
-                    ),
+                  const SizedBox(height: 10),
+                  LinearProgressIndicator(value: course.progress, minHeight: 6),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${(course.progress! * 100).round()}%',
+                    style: const TextStyle(fontSize: 12),
                   ),
                 ],
               ],
@@ -435,15 +442,6 @@ class _CourseCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-
-    if (!canTap) return card;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, '/course', arguments: course);
-      },
-      child: card,
     );
   }
 }

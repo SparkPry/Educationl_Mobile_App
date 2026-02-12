@@ -3,11 +3,17 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:education_app/screens/lesson_list_screen.dart';
 import 'package:education_app/screens/quiz_screen.dart';
+import 'package:education_app/models/course_model.dart';
 
-class LearningScreen extends StatelessWidget {
-  const LearningScreen({super.key});
+class LearningScreen extends StatefulWidget {
+  final Course course;
+  const LearningScreen({super.key, required this.course});
 
-  // Function to launch the YouTube URL
+  @override
+  State<LearningScreen> createState() => _LearningScreenState();
+}
+
+class _LearningScreenState extends State<LearningScreen> {
   Future<void> _launchYouTubeVideo() async {
     final Uri url = Uri.parse('https://www.youtube.com/watch?v=h9C6JfkSLE4');
     if (!await launchUrl(url)) {
@@ -17,6 +23,12 @@ class LearningScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final course = widget.course;
+
+    final String summary = course.overview.about.isNotEmpty
+        ? course.overview.about.first
+        : course.description;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: SafeArea(
@@ -28,20 +40,21 @@ class LearningScreen extends StatelessWidget {
                 SliverAppBar(
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                   backgroundColor: Colors.white,
                   elevation: 0,
                   pinned: true,
                 ),
+
+                // ---------- HEADER ----------
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // THUMBNAIL (STATIC FOR NOW)
                         Container(
                           height: 200,
                           decoration: BoxDecoration(
@@ -52,14 +65,6 @@ class LearningScreen extends StatelessWidget {
                               ),
                               fit: BoxFit.cover,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.3),
-                                spreadRadius: 2,
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
                           ),
                           child: Center(
                             child: CircleAvatar(
@@ -76,45 +81,75 @@ class LearningScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 20),
-                        const Text(
-                          'UX/UI Essentials',
-                          style: TextStyle(
+
+                        // ✅ TITLE (DYNAMIC)
+                        Text(
+                          course.title,
+                          style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+
                         const SizedBox(height: 8),
+
+                        // ✅ LEVEL + DURATION + CATEGORY
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              '4.7',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
+                            // ⭐ LEVEL
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                course.level,
+                                style: const TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              '(4,579 reviews)',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
+
+                            // ⏱ DURATION (CENTER)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.timer_outlined,
+                                  size: 18,
+                                  color: Color.fromARGB(255, 19, 16, 16),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  course.duration,
+                                  style: const TextStyle(
+                                    color: Color.fromARGB(255, 12, 11, 11),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            const Text(
-                              'Design',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: AppColors.primaryColor,
-                              ),
+
+                            // 📚 CATEGORY
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.category_outlined,
+                                  size: 18,
+                                  color: Color.fromARGB(255, 26, 20, 20),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  course.category,
+                                  style: const TextStyle(color: Colors.black),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -122,6 +157,7 @@ class LearningScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 SliverPersistentHeader(
                   delegate: _SliverAppBarDelegate(
                     const TabBar(
@@ -139,11 +175,12 @@ class LearningScreen extends StatelessWidget {
                 ),
               ];
             },
+
             body: TabBarView(
               children: [
-                _buildSummaryTab(),
-                const LessonListScreen(),
-                const QuizScreen(),
+                _buildSummaryTab(summary),
+                const LessonListScreen(), // still static
+                const QuizScreen(), // still static
               ],
             ),
           ),
@@ -152,23 +189,23 @@ class LearningScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryTab() {
+  Widget _buildSummaryTab(String summary) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'About this course',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-            style: TextStyle(
+            summary,
+            style: const TextStyle(
               fontSize: 16,
-              color: Colors.grey[700],
               height: 1.5,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -178,12 +215,13 @@ class LearningScreen extends StatelessWidget {
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar);
-
   final TabBar _tabBar;
+
+  _SliverAppBarDelegate(this._tabBar);
 
   @override
   double get minExtent => _tabBar.preferredSize.height;
+
   @override
   double get maxExtent => _tabBar.preferredSize.height;
 
@@ -197,7 +235,5 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
-  }
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
 }
