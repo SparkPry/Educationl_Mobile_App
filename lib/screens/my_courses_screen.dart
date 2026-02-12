@@ -52,10 +52,10 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
 
             // ✅ MOCK PROGRESS ONLY
             progress: course.id == '9'
-                ? 0.6
-                : course.id == '13'
                 ? 0.25
-                : 0.8,
+                : course.id == '13'
+                ? 0.0
+                : 0.0,
           );
         })
         .toList();
@@ -129,14 +129,14 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         );
       }).toList();
 
-      // if (!mounted) return;
+      if (!mounted) return;
 
       setState(() {
         _apiCourses = mapped;
         _isLoadingApi = false;
       });
     } catch (_) {
-      // if (!mounted) return;
+      if (!mounted) return;
       setState(() => _isLoadingApi = false);
     }
   }

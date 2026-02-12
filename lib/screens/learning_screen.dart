@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:education_app/utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:education_app/screens/lesson_list_screen.dart';
 import 'package:education_app/screens/quiz_screen.dart';
 import 'package:education_app/models/course_model.dart';
+import 'package:education_app/services/course_api_service.dart';
 
 class LearningScreen extends StatefulWidget {
   final Course course;
@@ -18,6 +18,36 @@ class _LearningScreenState extends State<LearningScreen> {
     final Uri url = Uri.parse('https://www.youtube.com/watch?v=h9C6JfkSLE4');
     if (!await launchUrl(url)) {
       throw 'Could not launch $url';
+    }
+  }
+
+  List<Map<String, dynamic>> _lessons = [];
+  bool _isLoading = true;
+
+  final String _token =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjYsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzcwODY4NjA5LCJleHAiOjE3NzE0NzM0MDl9.gsjcqfFB7hVIrVu4uD9cicyrBpAIKrjfvGIgADP0VH0';
+  @override
+  void initState() {
+    super.initState();
+    _loadLessons();
+  }
+
+  Future<void> _loadLessons() async {
+    try {
+      final lessons = await CourseApiService.fetchLessons(
+        token: _token,
+        courseId: widget.course.id,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _lessons = lessons;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
@@ -40,8 +70,18 @@ class _LearningScreenState extends State<LearningScreen> {
                 SliverAppBar(
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   ),
+                  title: const Text(
+                    "Learning Screen",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  centerTitle: true,
                   backgroundColor: Colors.white,
                   elevation: 0,
                   pinned: true,
@@ -124,7 +164,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 const Icon(
                                   Icons.timer_outlined,
                                   size: 18,
-                                  color: Color.fromARGB(255, 19, 16, 16),
+                                  color: const Color(0xFF6B66FF),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -142,7 +182,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 const Icon(
                                   Icons.category_outlined,
                                   size: 18,
-                                  color: Color.fromARGB(255, 26, 20, 20),
+                                  color: const Color(0xFF6B66FF),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -179,8 +219,8 @@ class _LearningScreenState extends State<LearningScreen> {
             body: TabBarView(
               children: [
                 _buildSummaryTab(summary),
-                const LessonListScreen(), // still static
-                const QuizScreen(), // still static
+                _buildLessonsTab(), // ✅ dynamic API lessons
+                const QuizScreen(), // keep static for now
               ],
             ),
           ),
@@ -210,6 +250,47 @@ class _LearningScreenState extends State<LearningScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLessonsTab() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_lessons.isEmpty) {
+      return const Center(
+        child: Text(
+          'No lessons available',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(20),
+      itemCount: _lessons.length,
+      separatorBuilder: (_, __) => const Divider(),
+      itemBuilder: (_, index) {
+        final lesson = _lessons[index];
+
+        final bool isCompleted = lesson['completed'] == 1;
+
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: AppColors.primaryColor,
+            child: const Icon(Icons.play_arrow, color: Colors.white),
+          ),
+          title: Text(
+            lesson['title'],
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text('Lesson ${index + 1}'),
+          trailing: isCompleted
+              ? const Icon(Icons.check_circle, color: Colors.green)
+              : null,
+        );
+      },
     );
   }
 }
