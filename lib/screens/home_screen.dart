@@ -5,6 +5,7 @@ import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:education_app/screens/category_screen.dart';
 
 import 'package:education_app/widgets/course_card.dart';
 import '../models/course_model.dart';
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
   List<Course> _courses = [];
   List<Course> _topRatedSnapshot = [];
+  List<String> _categories = [];
 
   bool _isLoadingCourses = true;
 
@@ -68,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
     _pageController = PageController(initialPage: _currentPage);
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_currentPage < _promoBanners.length - 1) {
@@ -129,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _courses = mappedCourses;
-        _topRatedSnapshot = randomFour; // ✅ FIXED SET
+        _topRatedSnapshot = randomFour;
         _isLoadingCourses = false;
       });
     } catch (e) {
@@ -306,9 +309,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCategories(BuildContext context) {
     final categories = [
-      Category(name: "Design", icon: Icons.design_services),
+      Category(name: "Web", icon: Icons.design_services),
       Category(name: "Programming", icon: Icons.code),
-      Category(name: "Health & Fitness", icon: Icons.health_and_safety),
+      Category(name: "Database", icon: Icons.health_and_safety),
       Category(name: "More", icon: Icons.more_horiz),
     ];
     return Padding(
@@ -318,6 +321,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: categories.map((category) {
           return GestureDetector(
             onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/myCourses',
+                arguments: category.name,
+              );
               if (category.name == "More") {
                 Navigator.pushNamed(context, '/category');
               }

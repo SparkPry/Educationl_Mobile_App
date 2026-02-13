@@ -9,7 +9,14 @@ import 'package:education_app/models/course_model.dart';
 import 'package:education_app/services/course_api_service.dart';
 
 class MyCoursesScreen extends StatefulWidget {
-  const MyCoursesScreen({super.key});
+  final String? initialCategory;
+  final int initialTabIndex;
+
+  const MyCoursesScreen({
+    Key? key,
+    this.initialCategory,
+    this.initialTabIndex = 0, // default = All Course
+  }) : super(key: key);
 
   @override
   State<MyCoursesScreen> createState() => _MyCoursesScreenState();
@@ -91,6 +98,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedTabIndex = widget.initialTabIndex;
     _loadApiCourses();
   }
 
@@ -133,8 +141,12 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
 
       setState(() {
         _apiCourses = mapped;
+        _filteredCourses = mapped;
         _isLoadingApi = false;
       });
+      if (widget.initialCategory != null) {
+        _applyFilter(category: widget.initialCategory!, level: 'All');
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLoadingApi = false);

@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:education_app/widgets/sign_up_prompt.dart';
 import 'package:flutter/material.dart';
+import 'package:education_app/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,62 +17,62 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _passwordError = false; // New state for password error
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  // Mock user data
-  final List<Map<String, String>> _users = [
-    {'email': 'test@test.com', 'password': 'password'},
-    {'email': 'user@example.com', 'password': 'password123'},
-  ];
+  Future<void> _handleAuthAction() async {
+    setState(() {
+      _passwordError = false;
+      _errorMessage = null;
+      _isLoading = true;
+    });
 
-  void _handleAuthAction() {
-    if (isSignIn) {
-      final email = _emailController.text;
-      final password = _passwordController.text;
-
-      // Reset password error before new validation
-      setState(() {
-        _passwordError = false;
-      });
-
-      // Find user by email
-      final user = _users.firstWhere(
-        (user) => user['email'] == email,
-        orElse: () => <String, String>{},
-      );
-
-      if (user.isEmpty) {
-        // User not found, show sign up prompt
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return SignUpPrompt(
-              onSignUp: () {
-                Navigator.pop(context);
-                setState(() {
-                  isSignIn = false;
-                });
-              },
-            );
-          },
+    try {
+      if (isSignIn) {
+        final response = await _apiService.login(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
         );
-      } else if (user['password'] != password) {
-        // User found, but password incorrect
-        setState(() {
-          _passwordError = true;
-        });
-      } else {
-        // User found and password correct
+
+        final token = response.data['token'];
+        final role = response.data['role'];
+
+        // Save token & role locally
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        await prefs.setString('role', role);
+
         Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        await _apiService.register(
+          _usernameController.text.trim(),
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+
+        setState(() {
+          isSignIn = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registration successful")),
+        );
       }
-    } else {
-      // This is the case where the user is already on the Sign Up tab
-      // and clicks the "Sign Up" button.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sign Up button pressed (not implemented)'),
-        ),
-      );
+    } on DioException catch (e) {
+      setState(() {
+        _passwordError = true;
+        _errorMessage = e.response?.data['message'] ?? "Authentication failed";
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Something went wrong";
+      });
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -158,10 +161,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  child: Text(
-                    isSignIn ? "Sign In" : "Sign Up",
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          isSignIn ? "Sign In" : "Sign Up",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ),
             ],

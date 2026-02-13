@@ -104,7 +104,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                     const SizedBox(height: 10),
                     _buildInfoRow('Course Name', 'UX/UI Essential'),
                     _buildInfoRow('Category', 'Design'),
-                    _buildInfoRow('Mentor', 'Reak Smey'),
+                    _buildInfoRow('Mentor', 'AngkorEdu'),
                     const Divider(
                       height: 30,
                       thickness: 1,
@@ -185,7 +185,8 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MyCoursesScreen(),
+                          builder: (context) =>
+                              const MyCoursesScreen(initialTabIndex: 1),
                         ),
                       );
                     },
