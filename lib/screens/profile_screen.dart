@@ -1,5 +1,5 @@
-import 'package:education_app/payment_screen.dart';
 import 'package:education_app/screens/edit_profile_screen.dart';
+import 'package:education_app/screens/payment_method_screen.dart';
 import 'package:education_app/screens/security_screen.dart';
 import 'package:education_app/screens/privacy_policy_screen.dart';
 import 'package:education_app/screens/help_center_screen.dart';
@@ -32,7 +32,8 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const EditProfileScreen()),
+                          builder: (context) => const EditProfileScreen(),
+                        ),
                       );
                     },
                   ),
@@ -49,7 +50,8 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const PaymentScreen()),
+                          builder: (context) => const PaymentMethodScreen(),
+                        ),
                       );
                     },
                   ),
@@ -61,7 +63,8 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SecurityScreen()),
+                          builder: (context) => const SecurityScreen(),
+                        ),
                       );
                     },
                   ),
@@ -73,7 +76,8 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const PrivacyPolicyScreen()),
+                          builder: (context) => const PrivacyPolicyScreen(),
+                        ),
                       );
                     },
                   ),
@@ -85,7 +89,8 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HelpCenterScreen()),
+                          builder: (context) => const HelpCenterScreen(),
+                        ),
                       );
                     },
                   ),
@@ -97,7 +102,8 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const InviteFriendsScreen()),
+                          builder: (context) => const InviteFriendsScreen(),
+                        ),
                       );
                     },
                   ),
@@ -135,7 +141,7 @@ class ProfileHeader extends StatelessWidget {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => HomeScreen()),
-                    (route) => false,
+                (route) => false,
               );
             },
           ),
@@ -187,10 +193,7 @@ class ProfileSection extends StatelessWidget {
         SizedBox(height: 4),
         Text(
           'johndoe@example.com',
-          style: TextStyle(
-            fontSize: 14,
-            color: Color(0xFF8E8E93),
-          ),
+          style: TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
         ),
       ],
     );
@@ -247,19 +250,12 @@ class ProfileMenuItem extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: Color(0xFFC7C7CC),
-                  ),
+                  const Icon(Icons.chevron_right, color: Color(0xFFC7C7CC)),
                 ],
               ),
             ),
           ),
-          const Divider(
-            height: 1,
-            color: Color(0xFFE5E5EA),
-            indent: 68,
-          ),
+          const Divider(height: 1, color: Color(0xFFE5E5EA), indent: 68),
         ],
       ),
     );

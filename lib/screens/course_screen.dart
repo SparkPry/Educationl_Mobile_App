@@ -235,7 +235,7 @@ class _CourseScreenState extends State<CourseScreen>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const PaymentScreen(),
+                            builder: (_) => PaymentScreen(course: course),
                           ),
                         );
                       },

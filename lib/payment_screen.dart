@@ -1,9 +1,12 @@
 import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'screens/add_payment_screen.dart';
+import 'package:education_app/models/course_model.dart';
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key});
+  final Course course;
+
+  const PaymentScreen({super.key, required this.course});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -123,7 +126,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AddPaymentScreen(),
+                      builder: (_) => AddPaymentScreen(course: widget.course),
                     ),
                   );
                 },

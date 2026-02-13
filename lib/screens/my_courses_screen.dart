@@ -11,7 +11,8 @@ import 'package:education_app/services/course_api_service.dart';
 class MyCoursesScreen extends StatefulWidget {
   final String? initialCategory;
   final int initialTabIndex;
-
+  static Set<String> ongoingCourseIds = {'9', '13', '15'};
+  static Set<String> completedCourseIds = {};
   const MyCoursesScreen({
     Key? key,
     this.initialCategory,
@@ -24,7 +25,6 @@ class MyCoursesScreen extends StatefulWidget {
 
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
   int _selectedTabIndex = 0;
-  final Set<String> _ongoingCourseIds = {'9', '13', '15'};
 
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
@@ -39,7 +39,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   // ---------- MOCK DATA ----------
   List<Course> get _ongoingCourses {
     return _apiCourses
-        .where((course) => _ongoingCourseIds.contains(course.id))
+        .where((course) => MyCoursesScreen.ongoingCourseIds.contains(course.id))
         .map((course) {
           return Course(
             id: course.id,

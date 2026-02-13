@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:education_app/widgets/sign_up_prompt.dart';
+
 import 'package:flutter/material.dart';
 import 'package:education_app/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';

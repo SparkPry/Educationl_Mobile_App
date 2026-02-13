@@ -2,9 +2,14 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
+import 'package:education_app/screens/home_screen.dart';
+import 'package:education_app/models/course_model.dart';
+import 'package:education_app/screens/learning_screen.dart';
 
 class EReceiptScreen extends StatefulWidget {
-  const EReceiptScreen({super.key});
+  final Course course;
+
+  const EReceiptScreen({super.key, required this.course});
 
   @override
   State<EReceiptScreen> createState() => _EReceiptScreenState();
@@ -13,6 +18,68 @@ class EReceiptScreen extends StatefulWidget {
 class _EReceiptScreenState extends State<EReceiptScreen> {
   String? _date;
   String? _time;
+
+  final Set<String> _completedCourseIds = {
+    '16',
+  }; // adjust to your real completed
+  void _showDialog({
+    required String message,
+    bool goHome = false,
+    bool goToOngoing = false,
+    bool goToLearning = false,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) {
+        String buttonText = "OK";
+
+        if (goHome) {
+          buttonText = "Go Back";
+        } else if (goToLearning) {
+          buttonText = "Go to Learning Screen";
+        } else if (goToOngoing) {
+          buttonText = "Go to Course";
+        }
+
+        return AlertDialog(
+          title: const Text("Notice"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog first
+
+                if (goHome) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    (route) => false,
+                  );
+                } else if (goToOngoing) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MyCoursesScreen(initialTabIndex: 1),
+                    ),
+                    (route) => false,
+                  );
+                } else if (goToLearning) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LearningScreen(course: widget.course),
+                    ),
+                    (route) => false,
+                  );
+                }
+              },
+              child: Text(buttonText),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -102,8 +169,8 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Course Name', 'UX/UI Essential'),
-                    _buildInfoRow('Category', 'Design'),
+                    _buildInfoRow('Course Name', widget.course.title),
+                    _buildInfoRow('Category', widget.course.category),
                     _buildInfoRow('Mentor', 'AngkorEdu'),
                     const Divider(
                       height: 30,
@@ -141,7 +208,10 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Price', '\$75.00'),
+                    _buildInfoRow(
+                      'Price',
+                      '\$${widget.course.discountPrice ?? widget.course.price}',
+                    ),
                     _buildInfoRow('Payment method', 'Paypal'),
                     _buildInfoRow('Date', _date ?? ''),
                     _buildInfoRow('Time', _time ?? ''),
@@ -182,14 +252,37 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const MyCoursesScreen(initialTabIndex: 1),
-                        ),
+                      final courseId = widget.course.id.toString();
+
+                      // Already completed
+                      if (_completedCourseIds.contains(courseId)) {
+                        _showDialog(
+                          message: "You've already completed this course ❌❌❌❌❌",
+                          goToOngoing: true,
+                        );
+                        return;
+                      }
+
+                      // Already enrolled
+                      if (MyCoursesScreen.ongoingCourseIds.contains(courseId)) {
+                        _showDialog(
+                          message:
+                              "You've already enrolled in this course 🔙🔙🔙🔙🔙",
+                          goHome: true,
+                        );
+                        return;
+                      }
+
+                      // ✅ NEW ENROLLMENT
+                      MyCoursesScreen.ongoingCourseIds.add(courseId);
+
+                      _showDialog(
+                        message:
+                            "You've been enrolled in the course successfully 🎉🎉🎉🎉🎉",
+                        goToOngoing: true,
                       );
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors
                           .primaryColor, // Matching the Download e-receipt button

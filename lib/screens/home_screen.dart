@@ -5,7 +5,6 @@ import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
-import 'package:education_app/screens/category_screen.dart';
 
 import 'package:education_app/widgets/course_card.dart';
 import '../models/course_model.dart';
@@ -42,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
   List<Course> _courses = [];
   List<Course> _topRatedSnapshot = [];
-  List<String> _categories = [];
 
   bool _isLoadingCourses = true;
 

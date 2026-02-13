@@ -2,9 +2,12 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'e_receipt_screen.dart';
+import 'package:education_app/models/course_model.dart';
 
 class AddPaymentScreen extends StatefulWidget {
-  const AddPaymentScreen({super.key});
+  final Course course;
+
+  const AddPaymentScreen({super.key, required this.course});
 
   @override
   State<AddPaymentScreen> createState() => _AddPaymentScreenState();
@@ -21,7 +24,9 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const EReceiptScreen()),
+          MaterialPageRoute(
+            builder: (_) => EReceiptScreen(course: widget.course),
+          ),
         );
       }
     });
@@ -64,7 +69,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                     ),
                   ),
                 ),
-                _BottomBar(onPayNow: _handlePayment),
+                _BottomBar(onPayNow: _handlePayment, course: widget.course),
               ],
             ),
           ),
@@ -261,19 +266,22 @@ class _PaymentForm extends StatelessWidget {
 
 class _BottomBar extends StatelessWidget {
   final VoidCallback onPayNow;
+  final Course course;
 
-  const _BottomBar({required this.onPayNow});
+  const _BottomBar({required this.onPayNow, required this.course});
 
   @override
   Widget build(BuildContext context) {
+    final price = course.discountPrice ?? course.price;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Total: \$19.50',
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+          Text(
+            'Total: \$${price.toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
           ElevatedButton(
             onPressed: onPayNow,
