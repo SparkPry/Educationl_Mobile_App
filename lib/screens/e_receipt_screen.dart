@@ -215,7 +215,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                     _buildInfoRow('Payment method', 'Paypal'),
                     _buildInfoRow('Date', _date ?? ''),
                     _buildInfoRow('Time', _time ?? ''),
-                    _buildInfoRow('Status', 'Paid', valueColor: Colors.blue),
+                    _buildInfoRow('Status', 'Unpaid', valueColor: Colors.blue),
                   ],
                 ),
               ),
