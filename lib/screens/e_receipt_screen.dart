@@ -292,7 +292,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       ),
                     ),
                     child: const Text(
-                      'Go to Course',
+                      'Enroll Course',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
