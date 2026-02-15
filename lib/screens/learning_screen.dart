@@ -289,6 +289,27 @@ class _LearningScreenState extends State<LearningScreen> {
           trailing: isCompleted
               ? const Icon(Icons.check_circle, color: Colors.green)
               : null,
+
+          onTap: () async {
+            final url = lesson['video_url'];
+
+            if (url == null || url.toString().isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Video not available")),
+              );
+              return;
+            }
+
+            final Uri videoUri = Uri.parse(url);
+
+            if (await canLaunchUrl(videoUri)) {
+              await launchUrl(videoUri, mode: LaunchMode.externalApplication);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Could not open video")),
+              );
+            }
+          },
         );
       },
     );
