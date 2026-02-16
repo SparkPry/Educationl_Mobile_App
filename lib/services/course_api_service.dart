@@ -38,6 +38,7 @@ class CourseApiService {
           'id': lesson['id'],
           'title': lesson['title'],
           'content': lesson['content'],
+          'video_url': lesson['video_url'],
           'completed': lesson['completed'],
         };
       }).toList();

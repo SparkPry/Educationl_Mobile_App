@@ -425,7 +425,7 @@ final List<Course> courseData = [
         'A computer with an internet connection and Python installed.',
       ],
       forWho: [
-        'Data scientists and analysts looking to expand ML knowledge.',
+        'Data scientistrs and analysts looking to expand ML knowledge.',
         'Developers interested in building intelligent applications.',
       ],
     ),
