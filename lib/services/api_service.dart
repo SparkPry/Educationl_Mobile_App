@@ -8,8 +8,7 @@ class ApiService {
   ApiService() {
     dio = Dio(
       BaseOptions(
-        baseUrl:
-            "https://e-learning-api-production-a6d4.up.railway.app/api", 
+        baseUrl: "https://e-learning-api-production-a6d4.up.railway.app/api",
         headers: {"Content-Type": "application/json"},
       ),
     );

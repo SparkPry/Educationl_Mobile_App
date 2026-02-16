@@ -14,6 +14,31 @@ class LearningScreen extends StatefulWidget {
 }
 
 class _LearningScreenState extends State<LearningScreen> {
+  String? _getFirstLessonThumbnail() {
+    if (_lessons.isEmpty) return null;
+
+    final videoUrl = _lessons.first['video_url'];
+    if (videoUrl == null) return null;
+
+    final uri = Uri.parse(videoUrl);
+
+    // Handle youtu.be short links
+    if (uri.host.contains('youtu.be')) {
+      final videoId = uri.pathSegments.first;
+      return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+    }
+
+    // Handle normal youtube links
+    if (uri.host.contains('youtube.com')) {
+      final videoId = uri.queryParameters['v'];
+      if (videoId != null) {
+        return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _launchYouTubeVideo() async {
     final Uri url = Uri.parse('https://www.youtube.com/watch?v=h9C6JfkSLE4');
     if (!await launchUrl(url)) {
@@ -54,6 +79,7 @@ class _LearningScreenState extends State<LearningScreen> {
   @override
   Widget build(BuildContext context) {
     final course = widget.course;
+    final thumbnailUrl = _getFirstLessonThumbnail();
 
     final String summary = course.overview.about.isNotEmpty
         ? course.overview.about.first
@@ -99,9 +125,11 @@ class _LearningScreenState extends State<LearningScreen> {
                           height: 200,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            image: const DecorationImage(
+
+                            image: DecorationImage(
                               image: NetworkImage(
-                                'https://img.youtube.com/vi/h9C6JfkSLE4/hqdefault.jpg',
+                                thumbnailUrl ??
+                                    'https://via.placeholder.com/500x300?text=No+Thumbnail',
                               ),
                               fit: BoxFit.cover,
                             ),
