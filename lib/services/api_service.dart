@@ -50,4 +50,11 @@ class ApiService {
       data: {"name": name, "email": email, "password": password},
     );
   }
+
+  Future<Response> getProfile(String token) async {
+    return await dio.get(
+      '/auth/profile',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
 }
