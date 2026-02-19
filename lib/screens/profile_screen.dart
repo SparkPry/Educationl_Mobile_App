@@ -7,6 +7,8 @@ import 'package:education_app/screens/invite_friends_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -112,7 +114,48 @@ class ProfileScreen extends StatelessWidget {
                     text: 'Sign out',
                     textColor: Colors.red,
                     iconColor: AppColors.primaryColor,
+                    onTap: () async {
+                      final confirm = await showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("Sign out"),
+                          content: const Text(
+                            "Are you sure you want to sign out?",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text(
+                                "Sign out",
+                                style: TextStyle(
+                                  color: Colors.red, // 🔥 RED COLOR
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm != true) return;
+
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.clear();
+
+                      if (!context.mounted) return;
+
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/login',
+                        (route) => false,
+                      );
+                    },
                   ),
+
                   SizedBox(height: 50),
                 ],
               ),
@@ -162,38 +205,113 @@ class ProfileHeader extends StatelessWidget {
   }
 }
 
-class ProfileSection extends StatelessWidget {
+class ProfileSection extends StatefulWidget {
   const ProfileSection({super.key});
 
   @override
+  State<ProfileSection> createState() => _ProfileSectionState();
+}
+
+class _ProfileSectionState extends State<ProfileSection> {
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://e-learning-api-production-a6d4.up.railway.app',
+    ),
+  );
+
+  String _name = '';
+  String _email = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) return;
+
+      final response = await _dio.get(
+        '/api/auth/profile',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _name = response.data['name'] ?? '';
+        _email = response.data['email'] ?? '';
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _getInitials(String name) {
+    if (name.trim().isEmpty) return '';
+
+    final parts = name.trim().split(' ');
+
+    if (parts.length == 1) {
+      return parts[0][0].toUpperCase();
+    }
+
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return Column(
       children: [
-        SizedBox(height: 24),
-        ClipOval(
-          child: SizedBox(
-            width: 80,
-            height: 80,
-            child: Image.asset(
-              'assets/images/John Doe.jpg',
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
+        const SizedBox(height: 24),
+
+        /// 🔥 Avatar with Initials
+        CircleAvatar(
+          radius: 40,
+          backgroundColor: AppColors.primaryColor,
+          child: Text(
+            _getInitials(_name),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        SizedBox(height: 16),
+
+        const SizedBox(height: 16),
+
+        /// 🔥 Name from API
         Text(
-          'John Doe',
-          style: TextStyle(
+          _name,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xFF222222),
           ),
         ),
-        SizedBox(height: 4),
+
+        const SizedBox(height: 4),
+
+        /// 🔥 Email from API
         Text(
-          'johndoe@example.com',
-          style: TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
+          _email,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
         ),
       ],
     );
