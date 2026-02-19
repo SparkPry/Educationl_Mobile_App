@@ -36,11 +36,16 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         final token = response.data['token'];
-        final role = response.data['role'];
 
-        // Save token & role locally
+        // Save token first
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
+
+        // 🔥 NOW call profile API to get user data
+        final profileResponse = await _apiService.getProfile(token);
+
+        final role = profileResponse.data['role'];
+
         await prefs.setString('role', role);
 
         Navigator.pushReplacementNamed(context, '/home');

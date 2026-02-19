@@ -5,11 +5,12 @@ import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:education_app/widgets/course_card.dart';
 import '../models/course_model.dart';
 import '../models/api_course.dart';
 import '../services/course_api_service.dart';
+import 'package:education_app/services/api_service.dart';
 
 class _PromoBannerData {
   final String title;
@@ -37,6 +38,19 @@ class _HomeScreenState extends State<HomeScreen> {
   late final PageController _pageController;
   int _currentPage = 0;
   late final Timer _timer;
+  String _userName = '';
+  String _getInitials(String name) {
+    if (name.trim().isEmpty) return '';
+
+    final parts = name.trim().split(' ');
+
+    if (parts.length == 1) {
+      return parts[0][0].toUpperCase();
+    }
+
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
   List<Course> _courses = [];
@@ -83,6 +97,26 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     });
     _loadCourses();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) return;
+
+    try {
+      final response = await ApiService().getProfile(token);
+
+      if (!mounted) return;
+
+      setState(() {
+        _userName = response.data['name'];
+      });
+    } catch (e) {
+      debugPrint("Profile error: $e");
+    }
   }
 
   Future<void> _loadCourses() async {
@@ -219,29 +253,39 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/John Doe.jpg',
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
+          // 🔥 Dynamic Avatar (Initials)
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: AppColors.primaryColor,
+            child: Text(
+              _getInitials(_userName),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
           ),
+
           const SizedBox(width: 12),
-          const Column(
+
+          // 🔥 Dynamic Name
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Good morning", style: TextStyle(color: Colors.grey)),
+              const Text("Good morning", style: TextStyle(color: Colors.grey)),
               Text(
-                "John Doe",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                _userName.isEmpty ? "Loading..." : _userName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
+
           const Spacer(),
+
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () {
