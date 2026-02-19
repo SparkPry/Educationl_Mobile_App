@@ -292,7 +292,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               right: 20,
               bottom: 20,
               child: FloatingActionButton(
-                backgroundColor: AppColors.primaryColor,
+                backgroundColor: const Color.fromARGB(255, 178, 176, 250),
                 child: const Icon(Icons.filter_list),
                 onPressed: () async {
                   final result = await Navigator.pushNamed(context, '/filter');

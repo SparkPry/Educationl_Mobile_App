@@ -150,8 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
           instructor: Instructor(
             name: 'AngkorEdu',
             title: 'Teacher',
-            avatar:
-                'https://i.pinimg.com/736x/b7/31/2b/b7312b36fa5139575f8cff445780c849.jpg',
+            avatar: 'assets/images/Logo.jpg',
             bio: '',
           ),
           reviews: Reviews(total: 0, average: 4.5),
@@ -286,12 +285,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const Spacer(),
 
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              Navigator.pushNamed(context, '/filter');
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
