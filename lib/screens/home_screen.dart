@@ -13,6 +13,7 @@ import '../models/course_model.dart';
 import '../models/api_course.dart';
 import '../services/course_api_service.dart';
 import 'package:education_app/services/api_service.dart';
+import '../data/mentor_data.dart';
 
 class _PromoBannerData {
   final String image;
@@ -29,12 +30,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   late final PageController _pageController;
   int _currentPage = 0;
   late final Timer _timer;
   String _userName = '';
+  bool _needsRefresh = false;
   String _getInitials(String name) {
     if (name.trim().isEmpty) return '';
 
@@ -63,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _pageController = PageController(initialPage: _currentPage);
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -79,6 +82,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     _loadCourses();
     _loadUserName();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _needsRefresh) {
+      // Reload data only if something changed
+      _loadCourses();
+      _loadUserName();
+      _needsRefresh = false;
+    }
   }
 
   Future<void> _loadUserName() async {
@@ -158,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     _timer.cancel();
     super.dispose();
@@ -170,18 +184,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     switch (index) {
       case 1:
+        _needsRefresh = true; // Mark for refresh when returning
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MyCoursesScreen()),
         );
         break;
       case 2:
+        _needsRefresh = true; // Mark for refresh when returning
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const InboxScreen()),
         );
         break;
       case 3:
+        _needsRefresh = true; // Mark for refresh when returning
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ProfileScreen()),
@@ -483,47 +500,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMentorSection() {
-    final mentors = [
-      {"name": "Alice", "avatar": "assets/images/Alice.jpg"},
-      {"name": "Bob", "avatar": "assets/images/Bob.jpg"},
-      {"name": "Charlie", "avatar": "assets/images/Charlie.jpg"},
-      {"name": "Diana", "avatar": "assets/images/Diana.jpg"},
-      {"name": "Eve", "avatar": "assets/images/Eve.jpg"},
-    ];
-
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: mentors.map((mentorData) {
+          children: mentorData.map((mentor) {
             return GestureDetector(
               onTap: () {
-                final mentor = Mentor(
-                  name: mentorData["name"]!,
-                  profileImage: mentorData["avatar"]!,
-                  title: "Senior Product Designer",
-                  about:
-                      "Experienced mentor with a passion for teaching and helping students achieve their goals in the field of design and technology. I have over 10 years of experience in the industry and have worked with several top-tier companies.",
-                  courses: ["UI/UX Design", "Graphic Design", "Web Design"],
-                  students: "1,250",
-                  rating: "4.8",
-                  reviewsCount: "450",
-                  reviews: [
-                    MentorReview(
-                      userName: "Alex Johnson",
-                      comment: "Amazing mentor! Really helped me understand the core concepts of UI/UX.",
-                      rating: 5.0,
-                      date: "2 days ago",
-                    ),
-                    MentorReview(
-                      userName: "Sarah Williams",
-                      comment: "The courses are well-structured and easy to follow.",
-                      rating: 4.5,
-                      date: "1 week ago",
-                    ),
-                  ],
-                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -534,11 +518,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   SizedBox(
-                    width: 60, // 2 * radius
-                    height: 60, // 2 * radius
+                    width: 60,
+                    height: 60,
                     child: ClipOval(
                       child: Image.asset(
-                        mentorData["avatar"]!,
+                        mentor.profileImage,
                         fit: BoxFit.cover,
                         alignment: Alignment.topCenter,
                       ),
@@ -546,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    mentorData["name"]!,
+                    mentor.name,
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],

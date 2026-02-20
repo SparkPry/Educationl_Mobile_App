@@ -23,7 +23,7 @@ class MyCoursesScreen extends StatefulWidget {
   State<MyCoursesScreen> createState() => _MyCoursesScreenState();
 }
 
-class _MyCoursesScreenState extends State<MyCoursesScreen> {
+class _MyCoursesScreenState extends State<MyCoursesScreen> with WidgetsBindingObserver {
   int _selectedTabIndex = 0;
   final ApiService _apiService = ApiService();
   final String _token =
@@ -33,6 +33,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   List<Course> _apiCourses = [];
   List<Course> _filteredCourses = [];
   bool _isLoadingApi = true;
+  bool _needsRefresh = false;
 
   static const List<String> _tabTitles = ['All Course', 'Ongoing', 'Completed'];
 
@@ -58,8 +59,24 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _selectedTabIndex = widget.initialTabIndex;
     _loadApiCourses();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _needsRefresh) {
+      // Reload courses only if something changed
+      _loadApiCourses();
+      _needsRefresh = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _loadApiCourses() async {
@@ -242,7 +259,9 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                                 );
 
                                 if (result == true) {
-                                  _loadApiCourses(); // 🔥 reload everything
+                                  // Something changed in learning screen, reload immediately
+                                  _loadApiCourses();
+                                  _needsRefresh = false;
                                 }
                               }
                             },

@@ -10,7 +10,7 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends State<SearchScreen> with WidgetsBindingObserver {
   late TextEditingController _searchController;
 
   static const String token =
@@ -19,12 +19,23 @@ class _SearchScreenState extends State<SearchScreen> {
   List<ApiCourse> _apiCourses = [];
   List<ApiCourse> _filteredCourses = [];
   bool _loading = true;
+  bool _needsRefresh = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _searchController = TextEditingController();
     _fetchCourses();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _needsRefresh) {
+      // Reload courses only if something changed
+      _fetchCourses();
+      _needsRefresh = false;
+    }
   }
 
   Future<void> _fetchCourses() async {
@@ -87,6 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
   }

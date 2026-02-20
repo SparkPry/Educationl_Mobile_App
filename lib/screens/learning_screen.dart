@@ -14,7 +14,7 @@ class LearningScreen extends StatefulWidget {
   State<LearningScreen> createState() => _LearningScreenState();
 }
 
-class _LearningScreenState extends State<LearningScreen> {
+class _LearningScreenState extends State<LearningScreen> with WidgetsBindingObserver {
   final ApiService _apiService = ApiService();
   String? _getFirstLessonThumbnail() {
     if (_lessons.isEmpty) return null;
@@ -50,11 +50,28 @@ class _LearningScreenState extends State<LearningScreen> {
 
   List<Map<String, dynamic>> _lessons = [];
   bool _isLoading = true;
+  bool _needsRefresh = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadLessons();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _needsRefresh) {
+      // Reload lessons only if something changed
+      _loadLessons();
+      _needsRefresh = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _loadLessons() async {
