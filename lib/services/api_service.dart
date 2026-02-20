@@ -57,4 +57,16 @@ class ApiService {
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
   }
+
+  Future<Response> enrollCourse(String courseId) async {
+    return await dio.post("/enrollments/$courseId");
+  }
+
+  Future<Response> getCourseLessons(String courseId) async {
+    return await dio.get("/courses/$courseId/lessons");
+  }
+
+  Future<Response> completeLesson(String lessonId) async {
+    return await dio.post("/lessons/$lessonId/complete");
+  }
 }

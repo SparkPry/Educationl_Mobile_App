@@ -119,7 +119,11 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => EReceiptScreen(course: widget.course),
+            builder: (_) => EReceiptScreen(
+              course: widget.course,
+              userName: "Sopheap", // temporary
+              userEmail: "sopheap@gmail.com", // temporary
+            ),
           ),
         );
       }

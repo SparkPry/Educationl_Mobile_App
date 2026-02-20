@@ -3,7 +3,8 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:education_app/screens/quiz_screen.dart';
 import 'package:education_app/models/course_model.dart';
-import 'package:education_app/services/course_api_service.dart';
+
+import 'package:education_app/services/api_service.dart';
 
 class LearningScreen extends StatefulWidget {
   final Course course;
@@ -14,6 +15,7 @@ class LearningScreen extends StatefulWidget {
 }
 
 class _LearningScreenState extends State<LearningScreen> {
+  final ApiService _apiService = ApiService();
   String? _getFirstLessonThumbnail() {
     if (_lessons.isEmpty) return null;
 
@@ -49,8 +51,6 @@ class _LearningScreenState extends State<LearningScreen> {
   List<Map<String, dynamic>> _lessons = [];
   bool _isLoading = true;
 
-  final String _token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjYsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzcwODY4NjA5LCJleHAiOjE3NzE0NzM0MDl9.gsjcqfFB7hVIrVu4uD9cicyrBpAIKrjfvGIgADP0VH0';
   @override
   void initState() {
     super.initState();
@@ -59,10 +59,8 @@ class _LearningScreenState extends State<LearningScreen> {
 
   Future<void> _loadLessons() async {
     try {
-      final lessons = await CourseApiService.fetchLessons(
-        token: _token,
-        courseId: widget.course.id,
-      );
+      final response = await _apiService.getCourseLessons(widget.course.id);
+      final lessons = List<Map<String, dynamic>>.from(response.data);
 
       if (!mounted) return;
 
@@ -72,7 +70,11 @@ class _LearningScreenState extends State<LearningScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
+
+      setState(() {
+        _lessons = [];
+        _isLoading = false;
+      });
     }
   }
 
@@ -97,7 +99,7 @@ class _LearningScreenState extends State<LearningScreen> {
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(context, true);
                     },
                   ),
                   title: const Text(

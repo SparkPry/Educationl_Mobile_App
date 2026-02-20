@@ -24,11 +24,21 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   Future<Widget> _getInitialScreen() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Check if onboarding was already seen
+    final seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
+
+    // Check login token
     final token = prefs.getString('token');
 
-    if (token != null) {
+    if (!seenOnboarding) {
+      // First time opening the app
+      return const OnboardingScreen();
+    } else if (token != null) {
+      // Already logged in
       return const HomeScreen();
     } else {
+      // Not logged in yet
       return const LoginScreen();
     }
   }

@@ -73,9 +73,9 @@ class _SearchScreenState extends State<SearchScreen> {
       curriculum: [],
 
       instructor: Instructor(
-        name: 'Instructor',
+        name: 'AngkorEdu',
         title: 'Teacher',
-        avatar: 'assets/images/mentor1.jpg',
+        avatar: 'assets/images/Logo.jpg',
         bio: '',
       ),
 
