@@ -159,7 +159,6 @@ final List<Course> courseData = [
       bio: 'Jane Smith is a data scientist with over 5 years of experience.',
     ),
     reviews: Reviews(total: 5678, average: 4.8),
-    progress: null,
   ),
   Course(
     id: '3',
@@ -479,7 +478,6 @@ final List<Course> courseData = [
       bio: '',
     ),
     reviews: Reviews(total: 4200, average: 4.8),
-    progress: null,
   ),
   Course(
     id: '9',

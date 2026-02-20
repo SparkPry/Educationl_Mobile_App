@@ -4,6 +4,7 @@ import 'package:education_app/screens/security_screen.dart';
 import 'package:education_app/screens/privacy_policy_screen.dart';
 import 'package:education_app/screens/help_center_screen.dart';
 import 'package:education_app/screens/invite_friends_screen.dart';
+import 'package:education_app/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/utils/app_colors.dart';

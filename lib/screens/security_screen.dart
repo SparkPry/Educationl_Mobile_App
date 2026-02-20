@@ -67,7 +67,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                           _isTwoFactorEnabled = value;
                         });
                       },
-                      activeColor: kPrimaryColor,
+                      activeThumbColor: kPrimaryColor,
                     ),
                   ),
                 ],

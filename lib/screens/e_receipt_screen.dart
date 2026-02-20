@@ -4,50 +4,55 @@ import 'package:intl/intl.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/models/course_model.dart';
-import 'package:education_app/screens/learning_screen.dart';
+import 'package:education_app/services/api_service.dart';
+import 'package:dio/dio.dart';
 
 class EReceiptScreen extends StatefulWidget {
   final Course course;
+  final String userName;
+  final String userEmail;
 
-  const EReceiptScreen({super.key, required this.course});
+  const EReceiptScreen({
+    super.key,
+    required this.course,
+    required this.userName,
+    required this.userEmail,
+  });
 
   @override
   State<EReceiptScreen> createState() => _EReceiptScreenState();
 }
 
 class _EReceiptScreenState extends State<EReceiptScreen> {
+  final ApiService _apiService = ApiService();
+
   String? _date;
   String? _time;
+  bool _isLoading = false;
 
-  final Set<String> _completedCourseIds = {
-    '16',
-  }; // adjust to your real completed
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _date = DateFormat('dd.MM.yy').format(now);
+    _time = DateFormat('HH:mm').format(now);
+  }
+
   void _showDialog({
     required String message,
     bool goHome = false,
     bool goToOngoing = false,
-    bool goToLearning = false,
   }) {
     showDialog(
       context: context,
       builder: (_) {
-        String buttonText = "OK";
-
-        if (goHome) {
-          buttonText = "Go Back";
-        } else if (goToLearning) {
-          buttonText = "Go to Learning Screen";
-        } else if (goToOngoing) {
-          buttonText = "Go to Course";
-        }
-
         return AlertDialog(
           title: const Text("Notice"),
           content: Text(message),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close dialog first
+                Navigator.pop(context);
 
                 if (goHome) {
                   Navigator.pushAndRemoveUntil(
@@ -63,17 +68,9 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                     ),
                     (route) => false,
                   );
-                } else if (goToLearning) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LearningScreen(course: widget.course),
-                    ),
-                    (route) => false,
-                  );
                 }
               },
-              child: Text(buttonText),
+              child: const Text("Go To Course"),
             ),
           ],
         );
@@ -81,26 +78,53 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    _date = DateFormat('dd.MM.yy').format(now);
-    _time = DateFormat('HH:mm').format(now);
+  Future<void> _handleEnroll() async {
+    final courseId = widget.course.id;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _apiService.enrollCourse(courseId);
+
+      setState(() => _isLoading = false);
+
+      _showDialog(
+        message: "You've been enrolled in the course successfully 🎉🎉🎉🎉🎉",
+        goToOngoing: true,
+      );
+    } on DioException catch (e) {
+      setState(() => _isLoading = false);
+
+      if (e.response?.statusCode == 400 || e.response?.statusCode == 409) {
+        _showDialog(
+          message: "You've already enrolled in this course 🔙🔙🔙🔙🔙",
+          goToOngoing: true,
+        );
+      } else {
+        _showDialog(
+          message: "Something went wrong. Please try again.",
+          goHome: true,
+        );
+      }
+    } catch (_) {
+      setState(() => _isLoading = false);
+      _showDialog(message: "Unexpected error occurred.", goHome: true);
+    }
   }
 
-  // Helper widget to build a row for information display
   Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 2,
             child: Text(
               label,
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 16,
+                color: const Color.fromARGB(255, 86, 39, 216),
+              ),
             ),
           ),
           Expanded(
@@ -122,20 +146,16 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final course = widget.course;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('E-receipt'),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        elevation: 0, // No shadow for the AppBar
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -143,6 +163,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Container(
+                padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12.0),
@@ -151,155 +172,112 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       color: Colors.grey.withOpacity(0.1),
                       spreadRadius: 1,
                       blurRadius: 5,
-                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Section 1: Course Info
-                    Text(
+                    // ================= COURSE INFO =================
+                    const Text(
                       'Course Information',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Course Name', widget.course.title),
-                    _buildInfoRow('Category', widget.course.category),
-                    _buildInfoRow('Mentor', 'AngkorEdu'),
-                    const Divider(
-                      height: 30,
-                      thickness: 1,
-                      color: Color.fromARGB(255, 230, 230, 230),
-                    ),
+                    _buildInfoRow('Course Name', course.title),
+                    _buildInfoRow('Category', course.category),
+                    _buildInfoRow('Mentor', course.instructor.name),
+                    const Divider(height: 30),
 
-                    // Section 2: Student Info
-                    Text(
+                    // ================= STUDENT INFO =================
+                    const Text(
                       'Student Information',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Student', 'Sopheap'),
-                    _buildInfoRow('Email', 'sopheap@gmail.com'),
+                    _buildInfoRow('Student', widget.userName),
+                    _buildInfoRow('Email', widget.userEmail),
                     _buildInfoRow('Phone', '855+ 0876543678'),
                     _buildInfoRow('Country', 'Cambodia'),
-                    const Divider(
-                      height: 30,
-                      thickness: 1,
-                      color: Color.fromARGB(255, 230, 230, 230),
-                    ),
+                    const Divider(height: 30),
 
-                    // Section 3: Payment Info
-                    Text(
+                    // ================= PAYMENT INFO =================
+                    const Text(
                       'Payment Information',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
                       ),
                     ),
                     const SizedBox(height: 10),
                     _buildInfoRow(
                       'Price',
-                      '\$${widget.course.discountPrice ?? widget.course.price}',
+                      '\$${course.discountPrice ?? course.price}',
                     ),
                     _buildInfoRow('Payment method', 'Paypal'),
                     _buildInfoRow('Date', _date ?? ''),
                     _buildInfoRow('Time', _time ?? ''),
-                    _buildInfoRow('Status', 'Unpaid', valueColor: Colors.blue),
+                    _buildInfoRow(
+                      'Status',
+                      'Pending',
+                      valueColor: Colors.orange,
+                    ),
                   ],
                 ),
               ),
             ),
           ),
+
+          // ================= ENROLL BUTTON =================
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Download e-receipt logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          AppColors.primaryColor, // Purple/Indigo color
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
+                // ================= DOWNLOAD BUTTON =================
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Add real download logic later
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("E-receipt downloaded successfully"),
                       ),
-                    ),
-                    child: const Text(
-                      'Download e-receipt',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade300,
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: const Text(
+                    "Download E-receipt",
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 16), // Spacing between buttons
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final courseId = widget.course.id.toString();
 
-                      // Already completed
-                      if (_completedCourseIds.contains(courseId)) {
-                        _showDialog(
-                          message: "You've already completed this course ❌❌❌❌❌",
-                          goToOngoing: true,
-                        );
-                        return;
-                      }
+                const SizedBox(height: 16),
 
-                      // Already enrolled
-                      if (MyCoursesScreen.ongoingCourseIds.contains(courseId)) {
-                        _showDialog(
-                          message:
-                              "You've already enrolled in this course 🔙🔙🔙🔙🔙",
-                          goHome: true,
-                        );
-                        return;
-                      }
-
-                      // ✅ NEW ENROLLMENT
-                      MyCoursesScreen.ongoingCourseIds.add(courseId);
-
-                      _showDialog(
-                        message:
-                            "You've been enrolled in the course successfully 🎉🎉🎉🎉🎉",
-                        goToOngoing: true,
-                      );
-                    },
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors
-                          .primaryColor, // Matching the Download e-receipt button
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                    child: const Text(
-                      'Enroll Course',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                // ================= ENROLL BUTTON =================
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleEnroll,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    minimumSize: const Size(double.infinity, 50),
                   ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Enroll Course',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ],
             ),

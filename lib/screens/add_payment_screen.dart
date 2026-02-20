@@ -54,7 +54,7 @@ class ExpiryDateFormatter extends TextInputFormatter {
     String formatted = digits;
 
     if (digits.length > 2) {
-      formatted = digits.substring(0, 2) + '/' + digits.substring(2);
+      formatted = '${digits.substring(0, 2)}/${digits.substring(2)}';
     }
 
     return TextEditingValue(
@@ -119,7 +119,11 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => EReceiptScreen(course: widget.course),
+            builder: (_) => EReceiptScreen(
+              course: widget.course,
+              userName: "Sopheap", // temporary
+              userEmail: "sopheap@gmail.com", // temporary
+            ),
           ),
         );
       }
