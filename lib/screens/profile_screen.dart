@@ -4,6 +4,7 @@ import 'package:education_app/screens/security_screen.dart';
 import 'package:education_app/screens/privacy_policy_screen.dart';
 import 'package:education_app/screens/help_center_screen.dart';
 import 'package:education_app/screens/invite_friends_screen.dart';
+import 'package:education_app/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
@@ -112,6 +113,51 @@ class ProfileScreen extends StatelessWidget {
                     text: 'Sign out',
                     textColor: Colors.red,
                     iconColor: AppColors.primaryColor,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            title: const Text(
+                              "Sign Out",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            content: const Text("Are you sure you want to sign out?"),
+                            actions: [
+                              TextButton(
+                                child: Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              TextButton(
+                                child: Text(
+                                  "Sign Out",
+                                  style: TextStyle(
+                                    color: Colors.red.shade600,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context); // Close dialog
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
                   SizedBox(height: 50),
                 ],

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:education_app/models/category.dart';
+import 'package:education_app/models/mentor_model.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
+import 'package:education_app/screens/mentor_profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
 
 import 'package:education_app/widgets/course_card.dart';
@@ -12,16 +14,10 @@ import '../models/api_course.dart';
 import '../services/course_api_service.dart';
 
 class _PromoBannerData {
-  final String title;
-  final String subtitle;
-  final String description;
-  final Color color;
+  final String image;
 
   _PromoBannerData({
-    required this.title,
-    required this.subtitle,
-    required this.description,
-    required this.color,
+    required this.image,
   });
 }
 
@@ -45,24 +41,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingCourses = true;
 
   final List<_PromoBannerData> _promoBanners = [
-    _PromoBannerData(
-      title: "TODAY SPECIAL",
-      subtitle: "75% OFF",
-      description: "Get a special discount for your first course",
-      color: AppColors.primaryColor,
-    ),
-    _PromoBannerData(
-      title: "NEW COURSES",
-      subtitle: "50% OFF",
-      description: "Explore our latest courses and get a discount",
-      color: const Color(0xFFE8505B),
-    ),
-    _PromoBannerData(
-      title: "SUMMER SALE",
-      subtitle: "30% OFF",
-      description: "Get ready for summer with our special offers",
-      color: const Color(0xFFF9A825),
-    ),
+    _PromoBannerData(image: "assets/images/banner1.jpg"),
+    _PromoBannerData(image: "assets/images/banner2.jpg"),
+    _PromoBannerData(image: "assets/images/banner3.jpg"),
   ];
 
   @override
@@ -269,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
         SizedBox(
-          height: 150,
+          height: 180,
           child: PageView.builder(
             controller: _pageController,
             itemCount: _promoBanners.length,
@@ -478,26 +459,61 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: mentors.map((mentor) {
-            return Column(
-              children: [
-                SizedBox(
-                  width: 60, // 2 * radius
-                  height: 60, // 2 * radius
-                  child: ClipOval(
-                    child: Image.asset(
-                      mentor["avatar"] as String,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
+          children: mentors.map((mentorData) {
+            return GestureDetector(
+              onTap: () {
+                final mentor = Mentor(
+                  name: mentorData["name"]!,
+                  profileImage: mentorData["avatar"]!,
+                  title: "Senior Product Designer",
+                  about:
+                      "Experienced mentor with a passion for teaching and helping students achieve their goals in the field of design and technology. I have over 10 years of experience in the industry and have worked with several top-tier companies.",
+                  courses: ["UI/UX Design", "Graphic Design", "Web Design"],
+                  students: "1,250",
+                  rating: "4.8",
+                  reviewsCount: "450",
+                  reviews: [
+                    MentorReview(
+                      userName: "Alex Johnson",
+                      comment: "Amazing mentor! Really helped me understand the core concepts of UI/UX.",
+                      rating: 5.0,
+                      date: "2 days ago",
+                    ),
+                    MentorReview(
+                      userName: "Sarah Williams",
+                      comment: "The courses are well-structured and easy to follow.",
+                      rating: 4.5,
+                      date: "1 week ago",
+                    ),
+                  ],
+                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MentorProfileScreen(mentor: mentor),
+                  ),
+                );
+              },
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 60, // 2 * radius
+                    height: 60, // 2 * radius
+                    child: ClipOval(
+                      child: Image.asset(
+                        mentorData["avatar"]!,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  mentor["name"] as String,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    mentorData["name"]!,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
             );
           }).toList(),
         ),
@@ -534,39 +550,12 @@ class _PromoBannerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: data.color,
         borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  data.subtitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 32,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  data.description,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-        ],
+        image: DecorationImage(
+          image: AssetImage(data.image),
+          fit: BoxFit.fill,
+        ),
       ),
     );
   }

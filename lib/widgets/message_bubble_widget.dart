@@ -31,9 +31,17 @@ class MessageBubbleWidget extends StatelessWidget {
               children: [
                 if (!isSentByMe) ...[
                   if (message.senderAvatarUrl != null)
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundImage: AssetImage(message.senderAvatarUrl!),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage(message.senderAvatarUrl!),
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        ),
+                      ),
                     )
                   else if (message.senderAvatarText != null)
                     CircleAvatar(
@@ -50,17 +58,19 @@ class MessageBubbleWidget extends StatelessWidget {
                     ),
                   const SizedBox(width: 8),
                 ],
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: bubbleColor,
-                    borderRadius: isSentByMe
-                        ? borderRadius.copyWith(bottomRight: Radius.zero)
-                        : borderRadius.copyWith(bottomLeft: Radius.zero),
-                  ),
-                  child: Text(
-                    message.text,
-                    style: TextStyle(color: textColor, fontSize: 15),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: bubbleColor,
+                      borderRadius: isSentByMe
+                          ? borderRadius.copyWith(bottomRight: Radius.zero)
+                          : borderRadius.copyWith(bottomLeft: Radius.zero),
+                    ),
+                    child: Text(
+                      message.text,
+                      style: TextStyle(color: textColor, fontSize: 15),
+                    ),
                   ),
                 ),
                 if (isSentByMe) const SizedBox(width: 8), // Add space for sender bubbles

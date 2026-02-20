@@ -87,13 +87,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 40),
               _buildTextField(
                 label: 'Full Name',
-                initialValue: 'Enter Full Name',
+                initialValue: '',
                 isFaded: true,
               ),
               const SizedBox(height: 20),
               _buildTextField(
                 label: 'Email',
-                initialValue: 'Enter Email',
+                initialValue: '',
                 isFaded: true,
               ),
               const SizedBox(height: 20),
