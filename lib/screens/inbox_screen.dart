@@ -25,11 +25,11 @@ class _InboxScreenState extends State<InboxScreen> {
       isUnread: true,
     ),
     const Chat(
-      senderName: 'John Doe',
+      senderName: 'Eve',
       lastMessage: 'Hi there! How are you doing today?',
       time: '10:00 AM',
-      avatarText: 'JD',
-      avatarUrl: 'assets/images/John Doe.jpg',
+      avatarText: 'EV',
+      avatarUrl: 'assets/images/Eve.jpg',
       isUnread: true,
     ),
 
