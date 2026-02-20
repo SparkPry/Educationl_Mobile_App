@@ -9,11 +9,12 @@ class CategoryScreen extends StatefulWidget {
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
+class _CategoryScreenState extends State<CategoryScreen> with WidgetsBindingObserver {
   static const String _baseUrl =
       'https://e-learning-api-production-a6d4.up.railway.app';
 
   bool _isLoading = true;
+  bool _needsRefresh = false;
 
   // category -> thumbnail
   Map<String, String> _categories = {};
@@ -21,7 +22,23 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fetchCategories();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _needsRefresh) {
+      // Reload categories only if something changed
+      _fetchCategories();
+      _needsRefresh = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _fetchCategories() async {

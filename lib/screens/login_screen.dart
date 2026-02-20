@@ -16,15 +16,111 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _passwordError = false; // New state for password error
+  bool _passwordError = false;
+  bool _emailError = false;
+  bool _usernameError = false;
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
   String? _errorMessage;
+  String? _emailErrorMessage;
+  String? _passwordErrorMessage;
+  String? _usernameErrorMessage;
 
   Future<void> _handleAuthAction() async {
+    // Reset all validation states
     setState(() {
       _passwordError = false;
+      _emailError = false;
+      _usernameError = false;
       _errorMessage = null;
+      _emailErrorMessage = null;
+      _passwordErrorMessage = null;
+      _usernameErrorMessage = null;
+    });
+
+    // Validate inputs
+    bool isValid = true;
+
+    if (isSignIn) {
+      // Sign In Validation
+      if (_emailController.text.trim().isEmpty) {
+        setState(() {
+          _emailError = true;
+          _emailErrorMessage = "Email is required";
+        });
+        isValid = false;
+      } else if (!_isValidEmail(_emailController.text.trim())) {
+        setState(() {
+          _emailError = true;
+          _emailErrorMessage = "Please enter a valid email";
+        });
+        isValid = false;
+      }
+
+      if (_passwordController.text.trim().isEmpty) {
+        setState(() {
+          _passwordError = true;
+          _passwordErrorMessage = "Password is required";
+        });
+        isValid = false;
+      } else if (_passwordController.text.trim().length < 6) {
+        setState(() {
+          _passwordError = true;
+          _passwordErrorMessage = "Password must be at least 6 characters";
+        });
+        isValid = false;
+      }
+    } else {
+      // Sign Up Validation
+      if (_usernameController.text.trim().isEmpty) {
+        setState(() {
+          _usernameError = true;
+          _usernameErrorMessage = "Username is required";
+        });
+        isValid = false;
+      } else if (_usernameController.text.trim().length < 3) {
+        setState(() {
+          _usernameError = true;
+          _usernameErrorMessage = "Username must be at least 3 characters";
+        });
+        isValid = false;
+      }
+
+      if (_emailController.text.trim().isEmpty) {
+        setState(() {
+          _emailError = true;
+          _emailErrorMessage = "Email is required";
+        });
+        isValid = false;
+      } else if (!_isValidEmail(_emailController.text.trim())) {
+        setState(() {
+          _emailError = true;
+          _emailErrorMessage = "Please enter a valid email";
+        });
+        isValid = false;
+      }
+
+      if (_passwordController.text.trim().isEmpty) {
+        setState(() {
+          _passwordError = true;
+          _passwordErrorMessage = "Password is required";
+        });
+        isValid = false;
+      } else if (_passwordController.text.trim().length < 6) {
+        setState(() {
+          _passwordError = true;
+          _passwordErrorMessage = "Password must be at least 6 characters";
+        });
+        isValid = false;
+      }
+    }
+
+    // If validation failed, don't proceed
+    if (!isValid) {
+      return;
+    }
+
+    setState(() {
       _isLoading = true;
     });
 
@@ -48,7 +144,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await prefs.setString('role', role);
 
-        Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       } else {
         await _apiService.register(
           _usernameController.text.trim(),
@@ -58,26 +156,57 @@ class _LoginScreenState extends State<LoginScreen> {
 
         setState(() {
           isSignIn = true;
+          _usernameController.clear();
+          _emailController.clear();
+          _passwordController.clear();
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration successful")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Registration successful. Please log in.")),
+          );
+        }
       }
     } on DioException catch (e) {
+      String errorMessage = "Authentication failed";
+      
+      // Parse API error response
+      if (e.response?.data is Map && e.response?.data.containsKey('message') == true) {
+        errorMessage = e.response?.data['message'] ?? errorMessage;
+      } else if (e.response?.statusCode == 401) {
+        errorMessage = "Invalid email or password";
+      } else if (e.response?.statusCode == 409) {
+        errorMessage = "Email already exists";
+      } else if (e.response?.statusCode == 400) {
+        errorMessage = "Invalid input. Please check your information.";
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        errorMessage = "Connection timeout. Please check your internet.";
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = "Server timeout. Please try again.";
+      }
+
       setState(() {
-        _passwordError = true;
-        _errorMessage = e.response?.data['message'] ?? "Authentication failed";
+        _errorMessage = errorMessage;
+        if (isSignIn) {
+          _passwordError = true;
+        }
       });
     } catch (e) {
       setState(() {
-        _errorMessage = "Something went wrong";
+        _errorMessage = "Something went wrong: $e";
       });
     }
 
     setState(() {
       _isLoading = false;
     });
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    return emailRegex.hasMatch(email);
   }
 
   @override
@@ -120,26 +249,75 @@ class _LoginScreenState extends State<LoginScreen> {
                 "We are happy to see you here",
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
+              if (_errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(
+                                color: Colors.red.shade700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _handleAuthAction,
+                          icon: const Icon(Icons.refresh, size: 16),
+                          label: const Text('Retry'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade600,
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            foregroundColor: Colors.white,
+                            disabledForegroundColor: Colors.grey.shade600,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 20),
               if (!isSignIn)
                 _inputField(
                   "Username",
                   Icons.person_outline,
                   controller: _usernameController,
+                  hasError: _usernameError,
+                  errorText: _usernameErrorMessage,
                 ),
               _inputField(
                 "Example@gmail.com",
                 Icons.email_outlined,
                 controller: _emailController,
+                hasError: _emailError,
+                errorText: _emailErrorMessage,
               ),
               _inputField(
                 "Password",
                 Icons.lock_outline,
                 pass: true,
                 controller: _passwordController,
-                hasError: _passwordError, // Pass the error state
-                errorText:
-                    'Incorrect password!, Try again.', // Pass the error message
+                hasError: _passwordError,
+                errorText: _passwordErrorMessage,
               ),
               if (isSignIn)
                 Align(
@@ -159,20 +337,29 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: _handleAuthAction,
+                  onPressed: _isLoading ? null : _handleAuthAction,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6B66FF),
+                    disabledBackgroundColor: Colors.grey.shade300,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : Text(
                           isSignIn ? "Sign In" : "Sign Up",
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                 ),
@@ -212,21 +399,19 @@ class _LoginScreenState extends State<LoginScreen> {
     IconData icon, {
     bool pass = false,
     TextEditingController? controller,
-    bool hasError = false, // New parameter
-    String? errorText, // New parameter
+    bool hasError = false,
+    String? errorText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(bottom: 5), // Adjusted margin
+          margin: const EdgeInsets.only(bottom: 5),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: hasError
-                  ? Colors.red
-                  : Colors.transparent, // Red border if hasError
+              color: hasError ? Colors.red : Colors.transparent,
               width: 1.5,
             ),
             boxShadow: [
@@ -253,15 +438,15 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-        if (hasError && errorText != null) // Display error text
+        if (hasError && errorText != null)
           Padding(
             padding: const EdgeInsets.only(left: 10.0, bottom: 20.0),
             child: Text(
               errorText,
               style: const TextStyle(color: Colors.red, fontSize: 12),
             ),
-          ),
-        if (!hasError) // Add SizedBox only if no error to maintain spacing
+          )
+        else
           const SizedBox(height: 20),
       ],
     );

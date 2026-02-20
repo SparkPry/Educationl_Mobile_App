@@ -5,6 +5,7 @@ import 'package:education_app/screens/forgot_password_screen.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 
 import 'package:education_app/screens/new_password_screen.dart';
 import 'package:education_app/screens/notification_screen.dart';
@@ -13,6 +14,7 @@ import 'package:education_app/screens/search_screen.dart';
 import 'package:education_app/screens/splash_screen.dart';
 import 'package:education_app/screens/verification_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:education_app/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 
@@ -35,8 +37,27 @@ class MyApp extends StatelessWidget {
       // First time opening the app
       return const OnboardingScreen();
     } else if (token != null) {
-      // Already logged in
-      return const HomeScreen();
+      // Token exists, validate it with API
+      try {
+        final apiService = ApiService();
+        await apiService.getProfile(token);
+        // Token is valid
+        return const HomeScreen();
+      } on DioException catch (e) {
+        // Token is invalid or expired
+        debugPrint('Token validation failed: ${e.message}');
+        // Clear invalid token
+        await prefs.remove('token');
+        await prefs.remove('role');
+        return const LoginScreen();
+      } catch (e) {
+        // Error validating token
+        debugPrint('Error validating token: $e');
+        // Clear potentially invalid token
+        await prefs.remove('token');
+        await prefs.remove('role');
+        return const LoginScreen();
+      }
     } else {
       // Not logged in yet
       return const LoginScreen();
