@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:education_app/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:education_app/models/category.dart';
 import 'package:education_app/models/mentor_model.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
@@ -198,50 +200,61 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/John Doe.jpg',
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          final user = userProvider.user;
+          return Row(
             children: [
-              Text("Good morning", style: TextStyle(color: Colors.grey)),
-              Text(
-                "John Doe",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: ClipOval(
+                  child: user.avatar.startsWith('assets/')
+                      ? Image.asset(
+                          user.avatar,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        )
+                      : Image.network(
+                          user.avatar,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Good morning", style: TextStyle(color: Colors.grey)),
+                  Text(
+                    user.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/filter');
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/search');
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications_none),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/notification');
+                },
               ),
             ],
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              Navigator.pushNamed(context, '/filter');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Navigator.pushNamed(context, '/search');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {
-              Navigator.pushNamed(context, '/notification');
-            },
-          ),
-        ],
+          );
+        },
       ),
     );
   }

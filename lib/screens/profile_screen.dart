@@ -1,3 +1,6 @@
+import 'package:education_app/screens/student_profile_screen.dart';
+import 'package:education_app/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:education_app/screens/edit_profile_screen.dart';
 import 'package:education_app/screens/payment_method_screen.dart';
 import 'package:education_app/screens/security_screen.dart';
@@ -25,6 +28,20 @@ class ProfileScreen extends StatelessWidget {
             Expanded(
               child: ListView(
                 children: [
+                  ProfileMenuItem(
+                    icon: Icons.visibility_outlined,
+                    text: 'View Public Profile',
+                    iconColor: AppColors.primaryColor,
+                    onTap: () {
+                      final user = Provider.of<UserProvider>(context, listen: false).user;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StudentProfileScreen(student: user),
+                        ),
+                      );
+                    },
+                  ),
                   ProfileMenuItem(
                     icon: Icons.edit,
                     text: 'Edit Profile',
@@ -213,35 +230,46 @@ class ProfileSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: 24),
-        ClipOval(
-          child: SizedBox(
-            width: 80,
-            height: 80,
-            child: Image.asset(
-              'assets/images/John Doe.jpg',
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final user = userProvider.user;
+        return Column(
+          children: [
+            SizedBox(height: 24),
+            ClipOval(
+              child: SizedBox(
+                width: 80,
+                height: 80,
+                child: user.avatar.startsWith('assets/')
+                    ? Image.asset(
+                        user.avatar,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                    : Image.network(
+                        user.avatar,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      ),
+              ),
             ),
-          ),
-        ),
-        SizedBox(height: 16),
-        Text(
-          'John Doe',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF222222),
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          'johndoe@example.com',
-          style: TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
-        ),
-      ],
+            SizedBox(height: 16),
+            Text(
+              user.name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF222222),
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              user.email,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
+            ),
+          ],
+        );
+      },
     );
   }
 }

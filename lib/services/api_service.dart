@@ -50,4 +50,27 @@ class ApiService {
       data: {"name": name, "email": email, "password": password},
     );
   }
+
+  Future<Response> updateProfile({
+    String? name,
+    String? email,
+    String? bio,
+    String? phoneNumber,
+    String? avatarPath,
+  }) async {
+    // In a real app, you might use FormData for image upload
+    Map<String, dynamic> data = {
+      if (name != null) "name": name,
+      if (email != null) "email": email,
+      if (bio != null) "bio": bio,
+      if (phoneNumber != null) "phoneNumber": phoneNumber,
+      if (avatarPath != null) "avatar": avatarPath,
+    };
+
+    return await dio.put("/auth/profile", data: data);
+  }
+
+  Future<Response> getProfile() async {
+    return await dio.get("/auth/profile");
+  }
 }

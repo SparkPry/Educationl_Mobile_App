@@ -14,10 +14,17 @@ import 'package:education_app/screens/splash_screen.dart';
 import 'package:education_app/screens/verification_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:education_app/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => UserProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

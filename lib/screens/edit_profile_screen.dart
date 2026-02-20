@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import 'package:education_app/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 
 // Color Scheme
@@ -14,6 +16,11 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
+  late TextEditingController _bioController;
+
   final List<Map<String, String>> _countryCodes = [
     {'code': '+855', 'flag': '🇰🇭'}, // Cambodia
     {'code': '+84', 'flag': '🇻🇳'}, // Vietnam
@@ -33,11 +40,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   ];
 
   late int _selectedCountryIndex;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _selectedCountryIndex = 0;
+
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    _nameController = TextEditingController(text: user.name);
+    _emailController = TextEditingController(text: user.email);
+    _phoneController = TextEditingController(text: user.phoneNumber ?? '');
+    _bioController = TextEditingController(text: user.bio ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveChanges() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.updateUser(
+        name: _nameController.text,
+        email: _emailController.text,
+        bio: _bioController.text,
+        phoneNumber: _phoneController.text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -61,113 +125,146 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              _buildAvatar(),
-              const SizedBox(height: 24),
-              Text(
-                'John Doe', // New placeholder
-                style: TextStyle(
-                  color: kSecondaryTextColor.withOpacity(0.6), // Faded
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Johndoe@gmail.com', // New placeholder
-                style: TextStyle(
-                  color: kPrimaryTextColor.withOpacity(0.4), // More faded
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 40),
-              _buildTextField(
-                label: 'Full Name',
-                initialValue: '',
-                isFaded: true,
-              ),
-              const SizedBox(height: 20),
-              _buildTextField(
-                label: 'Email',
-                initialValue: '',
-                isFaded: true,
-              ),
-              const SizedBox(height: 20),
-              _buildPhoneField(),
-              const SizedBox(height: 20),
-              _buildTextField(label: 'Bio', maxLines: 4),
-              const SizedBox(height: 40),
-              _buildSaveButton(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAvatar() {
-    return Center(
-      child: Stack(
+      body: Stack(
         children: [
-          Container(
-            width: 130,
-            height: 130,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: kPrimaryColor, width: 4),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 2,
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: SizedBox(
-                width: 130,
-                height: 130,
-                child: Image.asset(
-                  'assets/images/John Doe.jpg',
-                  fit: BoxFit.cover,
-                  alignment: Alignment.topCenter,
-                ),
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  _buildAvatar(),
+                  const SizedBox(height: 24),
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _nameController,
+                    builder: (context, value, child) {
+                      return Text(
+                        value.text.isEmpty ? 'Full Name' : value.text,
+                        style: TextStyle(
+                          color: kSecondaryTextColor.withOpacity(0.6),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _emailController,
+                    builder: (context, value, child) {
+                      return Text(
+                        value.text.isEmpty ? 'Email' : value.text,
+                        style: TextStyle(
+                          color: kPrimaryTextColor.withOpacity(0.4),
+                          fontSize: 16,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                  _buildTextField(
+                    label: 'Full Name',
+                    controller: _nameController,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    label: 'Email',
+                    controller: _emailController,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildPhoneField(),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    label: 'Bio',
+                    controller: _bioController,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 40),
+                  _buildSaveButton(),
+                ],
               ),
             ),
           ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () {
-                _showImageSourceActionSheet(context);
-              },
-              child: Container(
-                height: 40,
-                width: 40,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: kPrimaryColor,
-                ),
-                child: const Icon(Icons.edit, color: Colors.white, size: 24),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(color: kPrimaryColor),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
+  Widget _buildAvatar() {
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final user = userProvider.user;
+        return Center(
+          child: Stack(
+            children: [
+              Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: kPrimaryColor, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 130,
+                    height: 130,
+                    child: user.avatar.startsWith('assets/')
+                        ? Image.asset(
+                            user.avatar,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topCenter,
+                          )
+                        : Image.network(
+                            user.avatar,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topCenter,
+                          ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    _showImageSourceActionSheet(context);
+                  },
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: kPrimaryColor,
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 24),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildTextField({
     required String label,
-    String? initialValue,
+    required TextEditingController controller,
     int maxLines = 1,
-    bool isFaded = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,18 +279,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: TextEditingController(text: initialValue),
+          controller: controller,
           maxLines: maxLines,
-          style: TextStyle(
-            color: isFaded
-                ? kPrimaryTextColor.withOpacity(0.6)
-                : kSecondaryTextColor,
+          style: const TextStyle(
+            color: kSecondaryTextColor,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
-            hintText: label, // Use label as hintText
+            hintText: label,
             hintStyle: TextStyle(
-              color: kPrimaryTextColor.withOpacity(0.6), // Faded hint style
+              color: kPrimaryTextColor.withOpacity(0.6),
               fontWeight: FontWeight.normal,
             ),
             contentPadding: const EdgeInsets.symmetric(
@@ -270,10 +365,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               Expanded(
                 child: TextFormField(
-                  controller: TextEditingController(text: ''),
+                  controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  style: TextStyle(
-                    color: kPrimaryTextColor.withOpacity(0.6), // Faded
+                  style: const TextStyle(
+                    color: kSecondaryTextColor,
                     fontWeight: FontWeight.w500,
                   ),
                   decoration: InputDecoration(
@@ -326,8 +421,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 title: const Text('Take Photo'),
                 onTap: () {
-                  // Placeholder for image picker logic
                   Navigator.of(context).pop();
+                  // In a real app, use image_picker to select an image
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Camera functionality not implemented.'),
@@ -342,8 +437,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 title: const Text('Choose from Gallery'),
                 onTap: () {
-                  // Placeholder for image picker logic
                   Navigator.of(context).pop();
+                  // In a real app, use image_picker to select an image
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Gallery functionality not implemented.'),
@@ -363,9 +458,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          // Save action
-        },
+        onPressed: _isLoading ? null : _saveChanges,
         style: ElevatedButton.styleFrom(
           backgroundColor: kPrimaryColor,
           foregroundColor: Colors.white,

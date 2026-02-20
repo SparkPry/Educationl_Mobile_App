@@ -1,3 +1,4 @@
+import 'package:education_app/screens/find_friends_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/models/chat_model.dart';
@@ -79,6 +80,18 @@ class _InboxScreenState extends State<InboxScreen> {
         centerTitle: true,
         backgroundColor: const Color(0xFFF6F6F6),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FindFriendsScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
