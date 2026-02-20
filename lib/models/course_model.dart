@@ -11,10 +11,11 @@ class Course {
   final List<CurriculumSection> curriculum;
   final Instructor instructor;
   final Reviews reviews;
-  final double? progress; // Added for progress tracking
   final double price;
   final String level;
   final double? discountPrice;
+  bool isEnrolled;
+  double progress; // 0.0 → 1.0
 
   Course({
     required this.id,
@@ -32,7 +33,8 @@ class Course {
     required this.reviews,
     required this.price,
     required this.level,
-    this.progress, // Added to constructor
+    this.isEnrolled = false,
+    this.progress = 0.0,
   });
 }
 

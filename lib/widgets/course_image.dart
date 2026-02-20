@@ -26,7 +26,7 @@ class CourseImage extends StatelessWidget {
             height: height,
             fit: fit,
             headers: const {'User-Agent': 'Mozilla/5.0'},
-            errorBuilder: (_, __, ___) =>
+            errorBuilder: (_, _, _) =>
                 const Icon(Icons.image_not_supported),
           )
         : Image.asset(
@@ -34,7 +34,7 @@ class CourseImage extends StatelessWidget {
             width: width,
             height: height,
             fit: fit,
-            errorBuilder: (_, __, ___) =>
+            errorBuilder: (_, _, _) =>
                 const Icon(Icons.image_not_supported),
           );
   }

@@ -7,17 +7,17 @@ import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/screens/learning_screen.dart';
 import 'package:education_app/models/course_model.dart';
 import 'package:education_app/services/course_api_service.dart';
+import '../services/api_service.dart';
 
 class MyCoursesScreen extends StatefulWidget {
   final String? initialCategory;
   final int initialTabIndex;
-  static Set<String> ongoingCourseIds = {'9', '13', '15'};
-  static Set<String> completedCourseIds = {};
+
   const MyCoursesScreen({
-    Key? key,
+    super.key,
     this.initialCategory,
     this.initialTabIndex = 0, // default = All Course
-  }) : super(key: key);
+  });
 
   @override
   State<MyCoursesScreen> createState() => _MyCoursesScreenState();
@@ -25,7 +25,7 @@ class MyCoursesScreen extends StatefulWidget {
 
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
   int _selectedTabIndex = 0;
-
+  final ApiService _apiService = ApiService();
   final String _token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzY5Njc2MTg4LCJleHAiOjE3Njk3NjI1ODh9.k-wd4sHo-ZXIC02mPFl5lUhSF-dtpYoF9tHeC92iyWs';
 
@@ -36,63 +36,23 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
 
   static const List<String> _tabTitles = ['All Course', 'Ongoing', 'Completed'];
 
-  // ---------- MOCK DATA ----------
-  List<Course> get _ongoingCourses {
-    return _apiCourses
-        .where((course) => MyCoursesScreen.ongoingCourseIds.contains(course.id))
-        .map((course) {
-          return Course(
-            id: course.id,
-            slug: course.slug,
-            title: course.title,
-            category: course.category,
-            description: course.description,
-            duration: course.duration,
-            rating: course.rating,
-            image: course.image,
-            price: course.price,
-            level: course.level,
-            overview: course.overview,
-            curriculum: course.curriculum,
-            instructor: course.instructor,
-            reviews: course.reviews,
+  List<Course> get _currentCourses {
+    switch (_selectedTabIndex) {
+      case 0:
+        return _filteredCourses.isEmpty ? _apiCourses : _filteredCourses;
 
-            // ✅ MOCK PROGRESS ONLY
-            progress: course.id == '9'
-                ? 0.25
-                : course.id == '13'
-                ? 0.0
-                : 0.0,
-          );
-        })
-        .toList();
+      case 1: // Ongoing
+        return _apiCourses
+            .where((course) => course.isEnrolled && course.progress < 1)
+            .toList();
+
+      case 2: // Completed
+        return _apiCourses.where((course) => course.progress == 1).toList();
+
+      default:
+        return [];
+    }
   }
-
-  List<Course> get _completedCourses {
-    return _apiCourses.where((course) => course.id == '16').map((course) {
-      return Course(
-        id: course.id,
-        slug: course.slug,
-        title: course.title,
-        category: course.category,
-        description: course.description,
-        duration: course.duration,
-        rating: course.rating,
-        image: course.image,
-        price: course.price,
-        discountPrice: course.discountPrice,
-        level: course.level,
-        overview: course.overview,
-        curriculum: course.curriculum,
-        instructor: course.instructor,
-        reviews: course.reviews,
-
-        // ✅ Completed = 100%
-        progress: 1.0,
-      );
-    }).toList();
-  }
-
   // ================= API =================
 
   @override
@@ -128,15 +88,35 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
           instructor: Instructor(
             name: 'AngkorEdu',
             title: 'Teacher',
-            avatar:
-                'https://i.pinimg.com/736x/b7/31/2b/b7312b36fa5139575f8cff445780c849.jpg',
+            avatar: 'assets/images/Logo.jpg',
             bio: '',
           ),
           reviews: Reviews(total: 0, average: 4.5),
-          progress: null, // IMPORTANT
         );
       }).toList();
+      for (var course in mapped) {
+        try {
+          final lessonResponse = await _apiService.getCourseLessons(course.id);
 
+          final lessons = lessonResponse.data as List;
+
+          course.isEnrolled = true;
+
+          if (lessons.isNotEmpty) {
+            final completedLessons = lessons
+                .where((l) => l["completed"] == 1)
+                .length;
+
+            course.progress = completedLessons / lessons.length;
+          } else {
+            course.progress = 0.0;
+          }
+        } catch (e) {
+          // Not enrolled (API likely returns 403)
+          course.isEnrolled = false;
+          course.progress = 0.0;
+        }
+      }
       if (!mounted) return;
 
       setState(() {
@@ -173,22 +153,6 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
     setState(() {
       _filteredCourses = result;
     });
-  }
-
-  // ================= DATA SWITCH =================
-
-  List<Course> get _currentCourses {
-    switch (_selectedTabIndex) {
-      case 0:
-        return _filteredCourses.isEmpty ? _apiCourses : _filteredCourses;
-      // ✅ FILTERED API
-      case 1:
-        return _ongoingCourses;
-      case 2:
-        return _completedCourses;
-      default:
-        return [];
-    }
   }
 
   void _onTabTapped(int index) {
@@ -254,12 +218,12 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: _currentCourses.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        separatorBuilder: (_, _) => const SizedBox(height: 16),
                         itemBuilder: (_, index) {
                           final course = _currentCourses[index];
 
                           return GestureDetector(
-                            onTap: () {
+                            onTap: () async {
                               if (_selectedTabIndex == 0) {
                                 // ✅ All Course → CourseScreen
                                 Navigator.pushNamed(
@@ -269,16 +233,23 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                                 );
                               } else {
                                 // ✅ Ongoing → LearningScreen
-                                Navigator.push(
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
                                         LearningScreen(course: course),
                                   ),
                                 );
+
+                                if (result == true) {
+                                  _loadApiCourses(); // 🔥 reload everything
+                                }
                               }
                             },
-                            child: _CourseCard(course: course),
+                            child: _CourseCard(
+                              course: course,
+                              showProgress: _selectedTabIndex != 0,
+                            ),
                           );
                         },
                       ),
@@ -391,8 +362,9 @@ class _TabItem extends StatelessWidget {
 
 class _CourseCard extends StatelessWidget {
   final Course course;
+  final bool showProgress;
 
-  const _CourseCard({required this.course});
+  const _CourseCard({required this.course, required this.showProgress});
 
   Widget _courseImage() {
     if (course.image.startsWith('http')) {
@@ -409,8 +381,6 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool showProgress = course.progress != null;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -440,12 +410,14 @@ class _CourseCard extends StatelessWidget {
                   '${course.instructor.name} | ${course.category}',
                   style: const TextStyle(color: Colors.grey),
                 ),
+
+                // 🔥 Only show progress when allowed
                 if (showProgress) ...[
                   const SizedBox(height: 10),
                   LinearProgressIndicator(value: course.progress, minHeight: 6),
                   const SizedBox(height: 4),
                   Text(
-                    '${(course.progress! * 100).round()}%',
+                    '${(course.progress * 100).round()}%',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],

@@ -221,7 +221,7 @@ class _FilterScreenState extends State<FilterScreen> {
           );
         }),
         const SizedBox(width: 8),
-        Text('${_rating}/5', style: const TextStyle(fontSize: 16)),
+        Text('$_rating/5', style: const TextStyle(fontSize: 16)),
       ],
     );
   }

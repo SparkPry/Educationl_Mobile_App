@@ -154,7 +154,7 @@ class NotificationListItem extends StatelessWidget {
   final String title;
   final String description;
 
-  NotificationListItem({
+  const NotificationListItem({
     super.key,
     required this.title,
     required this.description,
