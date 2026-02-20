@@ -24,7 +24,7 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showSubmitButton = false;
-  Map<int, String?> _selectedOptions = {}; // Map to store selected option for each question
+  final Map<int, String?> _selectedOptions = {}; // Map to store selected option for each question
 
   // Placeholder data for the quiz
   final String quizTitle = "General Knowledge Quiz";

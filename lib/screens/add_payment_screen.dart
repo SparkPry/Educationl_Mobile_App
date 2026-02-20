@@ -54,7 +54,7 @@ class ExpiryDateFormatter extends TextInputFormatter {
     String formatted = digits;
 
     if (digits.length > 2) {
-      formatted = digits.substring(0, 2) + '/' + digits.substring(2);
+      formatted = '${digits.substring(0, 2)}/${digits.substring(2)}';
     }
 
     return TextEditingValue(

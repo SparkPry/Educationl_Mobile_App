@@ -192,7 +192,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 const Icon(
                                   Icons.timer_outlined,
                                   size: 18,
-                                  color: const Color(0xFF6B66FF),
+                                  color: Color(0xFF6B66FF),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -210,7 +210,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 const Icon(
                                   Icons.category_outlined,
                                   size: 18,
-                                  color: const Color(0xFF6B66FF),
+                                  color: Color(0xFF6B66FF),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -298,7 +298,7 @@ class _LearningScreenState extends State<LearningScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(20),
       itemCount: _lessons.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (_, index) {
         final lesson = _lessons[index];
 

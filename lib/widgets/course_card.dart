@@ -31,14 +31,14 @@ class CourseCard extends StatelessWidget {
                         width: double.infinity,
                         fit: BoxFit.cover,
                         headers: const {'User-Agent': 'Mozilla/5.0'},
-                        errorBuilder: (_, __, ___) =>
+                        errorBuilder: (_, _, _) =>
                             const Icon(Icons.image_not_supported),
                       )
                     : Image.asset(
                         course.image,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
+                        errorBuilder: (_, _, _) =>
                             const Icon(Icons.image_not_supported),
                       ),
               ),

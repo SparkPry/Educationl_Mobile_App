@@ -96,7 +96,7 @@ class InviteFriendsScreen extends StatelessWidget {
   }
 
   Widget _buildShareLinkSection(BuildContext context) {
-    final TextEditingController _linkController = TextEditingController(text: _inviteLink);
+    final TextEditingController linkController = TextEditingController(text: _inviteLink);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +120,7 @@ class InviteFriendsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: TextFormField(
-                  controller: _linkController,
+                  controller: linkController,
                   readOnly: true,
                   style: const TextStyle(
                     color: kPrimaryTextColor,

@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:education_app/services/api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 

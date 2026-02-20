@@ -14,10 +14,10 @@ class MyCoursesScreen extends StatefulWidget {
   static Set<String> ongoingCourseIds = {'9', '13', '15'};
   static Set<String> completedCourseIds = {};
   const MyCoursesScreen({
-    Key? key,
+    super.key,
     this.initialCategory,
     this.initialTabIndex = 0, // default = All Course
-  }) : super(key: key);
+  });
 
   @override
   State<MyCoursesScreen> createState() => _MyCoursesScreenState();
@@ -254,7 +254,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: _currentCourses.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        separatorBuilder: (_, _) => const SizedBox(height: 16),
                         itemBuilder: (_, index) {
                           final course = _currentCourses[index];
 
