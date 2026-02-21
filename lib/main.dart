@@ -34,8 +34,8 @@ class MyApp extends StatelessWidget {
     final token = prefs.getString('token');
 
     if (!seenOnboarding) {
-      // First time opening the app
-      return const OnboardingScreen();
+      // First time opening the app: show splash then navigate to onboarding.
+      return const SplashScreen(nextRoute: '/onboarding');
     } else if (token != null) {
       // Token exists, validate it with API
       try {
