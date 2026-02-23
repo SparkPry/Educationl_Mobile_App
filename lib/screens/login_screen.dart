@@ -17,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _passwordError = false; // New state for password error
+  bool _showPassword = false; // New state for password visibility
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
   String? _errorMessage;
@@ -235,11 +236,24 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           child: TextField(
             controller: controller,
-            obscureText: pass,
+            obscureText: pass ? !_showPassword : false,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey[400]),
               prefixIcon: Icon(icon, color: Colors.grey),
+              suffixIcon: pass
+                  ? IconButton(
+                      icon: Icon(
+                        _showPassword ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
+                    )
+                  : null,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 18,

@@ -59,7 +59,8 @@ class FindFriendsScreen extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             leading: CircleAvatar(
               radius: 30,
-              backgroundImage: AssetImage(student.avatar),
+              backgroundColor: Colors.grey.shade200,
+              child: Icon(Icons.person, size: 30, color: Colors.grey.shade600),
             ),
             title: Text(
               student.name,

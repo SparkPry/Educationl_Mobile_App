@@ -18,10 +18,15 @@ import 'package:education_app/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 
+import 'package:education_app/providers/payment_provider.dart';
+
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => UserProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
+      ],
       child: const MyApp(),
     ),
   );

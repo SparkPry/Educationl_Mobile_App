@@ -65,14 +65,17 @@ AngkorEdu (Education App) is a comprehensive mobile learning platform built with
 ---
 
 ### 5. Payment System
-- **Multiple Payment Methods**: Support various payment options
+- **Multiple Payment Methods**: Support various payment options (Visa, Mastercard, PayPal, Apple Pay, ABA)
+- **Save and Re-use**: Ability to save payment methods for future transactions
 - **Secure Transactions**: Integration with payment gateway
 - **Invoice Generation**: E-receipts for purchases
+- **STANDALONE Payment Setup**: Users can set up payment methods from their profile without making a purchase
 - **Payment History**: View transaction history
 
 **Key Screens:**
-- `PaymentMethodScreen`: Select payment method
-- `AddPaymentScreen`: Add new payment method
+- `PaymentMethodScreen`: Select or manage payment methods
+- `AddPaymentScreen`: Add and save new payment information
+- `PaymentScreen`: Checkout interface with saved method selection
 - `EReceiptScreen`: View purchase receipts
 
 ---
@@ -165,11 +168,15 @@ class Lesson {
 }
 ```
 
-### Category Model
+### Payment Method Model
 ```dart
-class Category {
-  final String name;
-  final IconData icon;
+class PaymentMethod {
+  final String id;
+  final String cardHolderName;
+  final String cardNumber;
+  final String expiryDate;
+  final String cvv;
+  final PaymentType type;
 }
 ```
 

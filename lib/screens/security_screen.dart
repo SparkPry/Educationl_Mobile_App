@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:education_app/screens/change_password_screen.dart';
 
 // Color Scheme
 const Color kPrimaryColor = Color(0xFF5B5CF6);
@@ -50,6 +51,14 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   _buildMenuItem(
                     icon: Icons.lock_outline,
                     label: 'Change Password',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChangePasswordScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -153,6 +162,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
     Widget? trailing,
     Color? labelColor,
     Color? iconColor,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -178,9 +188,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             color: kPrimaryTextColor,
             size: 16,
           ),
-      onTap: () {
-        // Handle tap
-      },
+      onTap: onTap,
     );
   }
 }

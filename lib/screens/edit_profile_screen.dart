@@ -16,6 +16,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
@@ -48,8 +49,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _selectedCountryIndex = 0;
 
     final user = Provider.of<UserProvider>(context, listen: false).user;
-    _nameController = TextEditingController(text: user.name);
-    _emailController = TextEditingController(text: user.email);
+    _nameController = TextEditingController(text: '');
+    _emailController = TextEditingController(text: '');
     _phoneController = TextEditingController(text: user.phoneNumber ?? '');
     _bioController = TextEditingController(text: user.bio ?? '');
   }
@@ -64,17 +65,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveChanges() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final currentUser = userProvider.user;
+
+      // Use current values if the fields are left empty
+      final nameToSave = _nameController.text.trim().isEmpty 
+          ? currentUser.name 
+          : _nameController.text.trim();
+      
+      final emailToSave = _emailController.text.trim().isEmpty 
+          ? currentUser.email 
+          : _emailController.text.trim();
+
       await userProvider.updateUser(
-        name: _nameController.text,
-        email: _emailController.text,
-        bio: _bioController.text,
-        phoneNumber: _phoneController.text,
+        name: nameToSave,
+        email: emailToSave,
+        bio: _bioController.text.trim().isEmpty ? currentUser.bio : _bioController.text,
+        phoneNumber: _phoneController.text.trim().isEmpty ? currentUser.phoneNumber : _phoneController.text,
       );
 
       if (mounted) {
@@ -127,18 +143,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
+          Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
                 children: [
                   _buildAvatar(),
                   const SizedBox(height: 24),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _nameController,
-                    builder: (context, value, child) {
+                  Consumer<UserProvider>(
+                    builder: (context, userProvider, child) {
                       return Text(
-                        value.text.isEmpty ? 'Full Name' : value.text,
+                        userProvider.user.name,
                         style: TextStyle(
                           color: kSecondaryTextColor.withOpacity(0.6),
                           fontWeight: FontWeight.bold,
@@ -148,11 +165,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     },
                   ),
                   const SizedBox(height: 8),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _emailController,
-                    builder: (context, value, child) {
+                  Consumer<UserProvider>(
+                    builder: (context, userProvider, child) {
                       return Text(
-                        value.text.isEmpty ? 'Email' : value.text,
+                        userProvider.user.email,
                         style: TextStyle(
                           color: kPrimaryTextColor.withOpacity(0.4),
                           fontSize: 16,
@@ -169,6 +185,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _buildTextField(
                     label: 'Email',
                     controller: _emailController,
+                    hint: 'example@gmail.com',
+                    validator: (value) {
+                      // Allow empty for no-change fallback
+                      if (value == null || value.trim().isEmpty) {
+                        return null;
+                      }
+                      if (!value.toLowerCase().trim().endsWith('@gmail.com')) {
+                        return 'Email must end with @gmail.com';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
                   _buildPhoneField(),
@@ -184,17 +211,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(color: kPrimaryColor),
-              ),
+        ),
+        if (_isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: const Center(
+              child: CircularProgressIndicator(color: kPrimaryColor),
             ),
-        ],
-      ),
-    );
-  }
+          ),
+      ],
+    ),
+  );
+}
 
   Widget _buildAvatar() {
     return Consumer<UserProvider>(
@@ -264,7 +292,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
+    String? hint,
     int maxLines = 1,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,12 +311,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextFormField(
           controller: controller,
           maxLines: maxLines,
+          validator: validator,
           style: const TextStyle(
             color: kSecondaryTextColor,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
-            hintText: label,
+            hintText: hint ?? label,
             hintStyle: TextStyle(
               color: kPrimaryTextColor.withOpacity(0.6),
               fontWeight: FontWeight.normal,
@@ -304,6 +335,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 1.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
           ),
         ),

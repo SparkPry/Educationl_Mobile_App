@@ -47,14 +47,11 @@ class StudentProfileScreen extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
+                color: Colors.grey.shade200,
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.primaryColor, width: 3),
               ),
-              child: ClipOval(
-                child: student.avatar.startsWith('assets/')
-                    ? Image.asset(student.avatar, fit: BoxFit.cover)
-                    : Image.network(student.avatar, fit: BoxFit.cover),
-              ),
+              child: Icon(Icons.person, size: 80, color: Colors.grey.shade600),
             ),
             Positioned(
               bottom: 0,

@@ -1,8 +1,11 @@
+import 'package:education_app/models/course_model.dart';
+import 'package:education_app/models/payment_method.dart';
+import 'package:education_app/providers/payment_provider.dart';
 import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'e_receipt_screen.dart';
-import 'package:education_app/models/course_model.dart';
 
 /// =============================
 /// CARD NUMBER FORMATTER
@@ -68,9 +71,10 @@ class ExpiryDateFormatter extends TextInputFormatter {
 /// ADD PAYMENT SCREEN
 /// =============================
 class AddPaymentScreen extends StatefulWidget {
-  final Course course;
+  final Course? course;
+  final PaymentType paymentType;
 
-  const AddPaymentScreen({super.key, required this.course});
+  const AddPaymentScreen({super.key, this.course, required this.paymentType});
 
   @override
   State<AddPaymentScreen> createState() => _AddPaymentScreenState();
@@ -114,14 +118,34 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
 
     setState(() => _isLoading = true);
 
-    Future.delayed(const Duration(seconds: 2), () {
+    // Save payment method
+    final paymentMethod = PaymentMethod(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      cardHolderName: _cardHolderController.text,
+      cardNumber: _cardNumberController.text.replaceAll(' ', ''),
+      expiryDate: _expiryController.text,
+      cvv: _cvvController.text,
+      type: widget.paymentType,
+    );
+
+    Provider.of<PaymentProvider>(context, listen: false)
+        .addPaymentMethod(paymentMethod);
+
+    Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => EReceiptScreen(course: widget.course),
-          ),
-        );
+        if (widget.course != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EReceiptScreen(course: widget.course!),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment method saved successfully!')),
+          );
+          Navigator.pop(context);
+        }
       }
     });
   }
@@ -169,8 +193,6 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final price = widget.course.discountPrice ?? widget.course.price;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -298,33 +320,59 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                     vertical: 20.0,
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: widget.course != null 
+                        ? MainAxisAlignment.spaceBetween 
+                        : MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Total: \$${price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: _handlePayment,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
-                        ),
-                        child: const Text(
-                          'Continue',
-                          style: TextStyle(
-                            color: Colors.white,
+                      if (widget.course != null)
+                        Text(
+                          'Total: \$${(widget.course!.discountPrice ?? widget.course!.price).toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
+                      if (widget.course == null)
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _handlePayment,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              minimumSize: const Size(double.infinity, 56),
+                            ),
+                            child: const Text(
+                              'Save Payment',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        ElevatedButton(
+                          onPressed: _handlePayment,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                          ),
+                          child: const Text(
+                            'Continue',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
