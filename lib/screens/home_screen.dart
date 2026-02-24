@@ -6,6 +6,7 @@ import 'package:education_app/models/category.dart';
 import 'package:education_app/models/mentor_model.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
+import 'package:education_app/screens/student_profile_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/screens/mentor_profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
@@ -153,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 3:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          MaterialPageRoute(builder: (context) => ProfileScreen()),
         );
         break;
     }
@@ -205,21 +206,29 @@ class _HomeScreenState extends State<HomeScreen> {
           final user = userProvider.user;
           return Row(
             children: [
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: ClipOval(
-                  child: user.avatar.startsWith('assets/')
-                      ? Image.asset(
-                          user.avatar,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                        )
-                      : Image.network(
-                          user.avatar,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                        ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StudentProfileScreen(student: user)),
+                  );
+                },
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: ClipOval(
+                    child: user.avatar.startsWith('assets/')
+                        ? Image.asset(
+                            user.avatar,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topCenter,
+                          )
+                        : Image.network(
+                            user.avatar,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topCenter,
+                          ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

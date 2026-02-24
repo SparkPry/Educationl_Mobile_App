@@ -65,7 +65,7 @@ AngkorEdu (Education App) is a comprehensive mobile learning platform built with
 ---
 
 ### 5. Payment System
-- **Multiple Payment Methods**: Support various payment options (Visa, Mastercard, PayPal, Apple Pay, ABA)
+- **Multiple Payment Methods**: Support various payment options (Visa, Mastercard, PayPal, ABA QR)
 - **Save and Re-use**: Ability to save payment methods for future transactions
 - **Secure Transactions**: Integration with payment gateway
 - **Invoice Generation**: E-receipts for purchases

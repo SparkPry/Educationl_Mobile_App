@@ -1,4 +1,4 @@
-enum PaymentType { visa, mastercard, paypal, applepay, aba }
+enum PaymentType { visa, mastercard, paypal, aba }
 
 class PaymentMethod {
   final String id;

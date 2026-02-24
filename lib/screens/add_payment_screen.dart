@@ -93,6 +93,65 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    _cardNumberController.addListener(_updateCardPreview);
+    _cardHolderController.addListener(_updateCardPreview);
+    _expiryController.addListener(_updateCardPreview);
+    _cvvController.addListener(_updateCardPreview);
+  }
+
+  void _updateCardPreview() {
+    setState(() {}); // Trigger rebuild to update the card preview
+  }
+
+  String _getCardTypeFromNumber(String cardNumber) {
+    cardNumber = cardNumber.replaceAll(' ', '');
+    if (cardNumber.startsWith('4')) {
+      return 'visa';
+    } else if (cardNumber.startsWith('5')) {
+      return 'mastercard';
+    }
+    return ''; // Default or unknown
+  }
+
+  Widget _getCardLogo() {
+    String logoAsset = '';
+    switch (widget.paymentType) {
+      case PaymentType.visa:
+        logoAsset = 'assets/images/visacard.jpg';
+        break;
+      case PaymentType.mastercard:
+        logoAsset = 'assets/images/mastercard.jpg';
+        break;
+      case PaymentType.paypal:
+      case PaymentType.aba:
+        return Container(width: 60); // Do not display logo for these types
+    }
+
+    if (logoAsset.isNotEmpty) {
+      return Image.asset(logoAsset, width: 60);
+    }
+    return Container(width: 60); // Default empty space
+  }
+
+  String _formatCardNumberForPreview(String rawNumber) {
+    String digits = rawNumber.replaceAll(' ', '');
+    String formatted = '';
+    for (int i = 0; i < 16; i++) {
+      if (i < digits.length) {
+        formatted += digits[i];
+      } else {
+        formatted += 'x';
+      }
+      if ((i + 1) % 4 == 0 && i < 15) {
+        formatted += ' ';
+      }
+    }
+    return formatted;
+  }
+
   OutlineInputBorder _border(Color color) {
     return OutlineInputBorder(
       borderRadius: const BorderRadius.all(Radius.circular(12)),
@@ -118,6 +177,13 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
 
     setState(() => _isLoading = true);
 
+    // Determine payment type from card number
+    PaymentType type = widget.paymentType;
+    String cardType = _getCardTypeFromNumber(_cardNumberController.text);
+    if(cardType == 'visa') type = PaymentType.visa;
+    if(cardType == 'mastercard') type = PaymentType.mastercard;
+
+
     // Save payment method
     final paymentMethod = PaymentMethod(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -125,7 +191,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
       cardNumber: _cardNumberController.text.replaceAll(' ', ''),
       expiryDate: _expiryController.text,
       cvv: _cvvController.text,
-      type: widget.paymentType,
+      type: type,
     );
 
     Provider.of<PaymentProvider>(context, listen: false)
@@ -134,10 +200,14 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         if (widget.course != null) {
+          String detail = paymentMethod.type.name.toUpperCase();
+          // if (paymentMethod.type == PaymentType.visa || paymentMethod.type == PaymentType.mastercard) {
+          //   detail += ' ending in ${paymentMethod.lastFourDigits}';
+          // }
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => EReceiptScreen(course: widget.course!),
+              builder: (_) => EReceiptScreen(course: widget.course!, paymentMethodDetail: detail),
             ),
           );
         } else {
@@ -152,6 +222,10 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
 
   @override
   void dispose() {
+    _cardNumberController.removeListener(_updateCardPreview);
+    _cardHolderController.removeListener(_updateCardPreview);
+    _expiryController.removeListener(_updateCardPreview);
+    _cvvController.removeListener(_updateCardPreview);
     _cardNumberController.dispose();
     _cardHolderController.dispose();
     _expiryController.dispose();
@@ -221,7 +295,120 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _CreditCardPreview(),
+                        // Dynamic Credit Card Preview
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16.0),
+                            child: Stack(
+                              children: [
+                                Image.asset(
+                                  'assets/images/card.jpg',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: 220, // Increased height for CVV
+                                ),
+                                Positioned.fill(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16.0),
+                                      gradient: LinearGradient(
+                                        colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.2)],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              'Credit Card',
+                                              style: TextStyle(color: Colors.white, fontSize: 18),
+                                            ),
+                                            _getCardLogo(),
+                                          ],
+                                        ),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _formatCardNumberForPreview(_cardNumberController.text),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                                letterSpacing: 2,
+                                                fontFamily: 'monospace',
+                                              ),
+                                            ),
+                                            const SizedBox(height: 15),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 3,
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Text("Card Holder", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                                      Text(
+                                                        _cardHolderController.text.isEmpty ? 'CARD HOLDER' : _cardHolderController.text.toUpperCase(),
+                                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ),
+                                                Expanded(
+                                                  flex: 2,
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Text("Expires", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                                      Text(
+                                                        _expiryController.text.isEmpty ? 'MM/YY' : _expiryController.text,
+                                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Text("CVV", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                                      Text(
+                                                         _cvvController.text.isEmpty ? 'xxx' : _cvvController.text,
+                                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 32),
 
                         /// CARD NUMBER
@@ -239,6 +426,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                             if (_cardNumberError) {
                               setState(() => _cardNumberError = false);
                             }
+                            _updateCardPreview();
                           },
                         ),
 
@@ -259,6 +447,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                             if (_cardHolderError) {
                               setState(() => _cardHolderError = false);
                             }
+                            _updateCardPreview();
                           },
                         ),
 
@@ -282,6 +471,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                                   if (_expiryError) {
                                     setState(() => _expiryError = false);
                                   }
+                                  _updateCardPreview();
                                 },
                               ),
                             ),
@@ -303,6 +493,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                                   if (_cvvError) {
                                     setState(() => _cvvError = false);
                                   }
+                                   _updateCardPreview();
                                 },
                               ),
                             ),
@@ -384,98 +575,6 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
               color: Colors.black.withOpacity(0.5),
               child: const Center(child: CircularProgressIndicator()),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// =============================
-/// CARD PREVIEW (UNCHANGED UI)
-/// =============================
-class _CreditCardPreview extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.0),
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryColor, AppColors.primaryColor],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryColor.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Credit', style: TextStyle(color: Colors.white70)),
-              Text(
-                'Check',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Row(
-            children: [
-              Icon(Icons.memory, color: Colors.white, size: 40),
-              Spacer(),
-              Icon(Icons.wifi_tethering, color: Colors.white),
-            ],
-          ),
-          SizedBox(height: 20),
-          Text(
-            '5432   1098   7654   3210',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              letterSpacing: 2,
-            ),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                'EXPIRY',
-                style: TextStyle(color: Colors.white70, fontSize: 10),
-              ),
-              SizedBox(width: 8),
-              Text(
-                '12/28',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'JOHN DOE',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Icon(Icons.payment, color: Colors.white, size: 40),
-            ],
-          ),
         ],
       ),
     );

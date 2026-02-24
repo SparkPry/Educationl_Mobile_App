@@ -1,10 +1,13 @@
+import 'package:education_app/screens/aba_qr_payment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/utils/app_colors.dart';
 import 'package:education_app/models/payment_method.dart';
 import 'package:education_app/providers/payment_provider.dart';
 import 'package:provider/provider.dart';
-import 'add_payment_screen.dart'; 
+import 'add_payment_screen.dart';
 import 'package:education_app/models/course_model.dart';
+import 'package:education_app/widgets/saved_payment_card.dart';
+import 'package:education_app/widgets/simple_payment_method_item.dart';
 import 'e_receipt_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -37,9 +40,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } else if (methodStr.contains('paypal')) {
       iconData = Icons.payment;
       color = Colors.indigo;
-    } else if (methodStr.contains('apple')) {
-      iconData = Icons.apple;
-      color = Colors.black;
     } else if (methodStr.contains('aba')) {
       iconData = Icons.account_balance;
       color = Colors.red;
@@ -130,9 +130,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   const SizedBox(height: 12),
                   _buildPaymentOption('Pay with PayPal', PaymentType.paypal),
                   const SizedBox(height: 12),
-                  _buildPaymentOption('Pay with Apple Pay', PaymentType.applepay),
-                  const SizedBox(height: 12),
-                  _buildPaymentOption('Pay with ABA', PaymentType.aba),
+                  _buildPaymentOption('Pay with ABA QR', PaymentType.aba),
                 ],
               ),
             ),
@@ -145,23 +143,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ? null
                     : () {
                         if (_selectedSavedMethod != null) {
+                          String detail = _selectedSavedMethod!.type.name.toUpperCase();
                           // Re-using saved payment
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => EReceiptScreen(course: widget.course),
+                              builder: (_) => EReceiptScreen(course: widget.course, paymentMethodDetail: detail),
                             ),
                           );
                         } else if (_selectedNewType != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AddPaymentScreen(
-                                course: widget.course,
-                                paymentType: _selectedNewType!,
+                          if (_selectedNewType == PaymentType.aba) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AbaQrPaymentScreen(course: widget.course),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AddPaymentScreen(
+                                  course: widget.course,
+                                  paymentType: _selectedNewType!,
+                                ),
+                              ),
+                            );
+                          }
                         }
                       },
                 style: ElevatedButton.styleFrom(
@@ -186,54 +194,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _buildSavedMethodItem(PaymentMethod method) {
     final isSelected = _selectedSavedMethod?.id == method.id;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedSavedMethod = method;
-          _selectedNewType = null;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryColor.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
+
+    if (method.type == PaymentType.visa || method.type == PaymentType.mastercard) {
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedSavedMethod = method;
+            _selectedNewType = null;
+          });
+        },
+        child: SavedPaymentCard(
+          method: method,
+          isSelected: isSelected,
         ),
-        child: Row(
-          children: [
-            _buildPaymentLogo(method.type),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    method.cardHolderName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '**** **** **** ${method.lastFourDigits}',
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              const Icon(Icons.check_circle, color: AppColors.primaryColor)
-            else
-              const Icon(Icons.circle_outlined, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
+      );
+    } else {
+      return SimplePaymentMethodItem(
+        method: method,
+        isSelected: isSelected,
+        onTap: () {
+          setState(() {
+            _selectedSavedMethod = method;
+            _selectedNewType = null;
+          });
+        },
+      );
+    }
   }
 
   Widget _buildPaymentOption(String label, PaymentType type) {

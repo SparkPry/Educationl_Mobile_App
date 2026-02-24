@@ -1,3 +1,5 @@
+import 'package:education_app/widgets/saved_payment_card.dart';
+import 'package:education_app/widgets/simple_payment_method_item.dart';
 import 'package:flutter/material.dart';
 
 import 'package:education_app/models/payment_method.dart';
@@ -24,9 +26,6 @@ class PaymentMethodScreen extends StatelessWidget {
     } else if (methodStr.contains('paypal')) {
       iconData = Icons.payment;
       color = Colors.indigo;
-    } else if (methodStr.contains('apple')) {
-      iconData = Icons.apple;
-      color = Colors.black;
     } else if (methodStr.contains('aba')) {
       iconData = Icons.account_balance;
       color = Colors.red;
@@ -76,41 +75,21 @@ class PaymentMethodScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSavedMethod(PaymentMethod method) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: [
-          _buildPaymentLogo(method.type),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  method.cardHolderName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '**** **** **** ${method.lastFourDigits}',
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.check_circle, color: Colors.green),
-        ],
-      ),
-    );
+  Widget _buildSavedMethod(BuildContext context, PaymentMethod method) {
+    if (method.type == PaymentType.visa || method.type == PaymentType.mastercard) {
+      return SavedPaymentCard(
+        method: method,
+        isSelected: false, // The PaymentMethodScreen doesn't have selection state for saved items
+      );
+    } else {
+      return SimplePaymentMethodItem(
+        method: method,
+        isSelected: false, // The PaymentMethodScreen doesn't have selection state for saved items
+        onTap: () {
+          // Handle tap for simple methods if needed, though this screen is typically for adding/viewing
+        },
+      );
+    }
   }
 
   @override
@@ -148,7 +127,7 @@ class PaymentMethodScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   ...paymentProvider.savedMethods
-                      .map((method) => _buildSavedMethod(method))
+                      .map((method) => _buildSavedMethod(context, method))
                       .toList(),
                   const SizedBox(height: 24),
                 ],
@@ -175,13 +154,7 @@ class PaymentMethodScreen extends StatelessWidget {
                   PaymentType.paypal,
                 ),
                 const SizedBox(height: 16),
-                _buildPaymentOption(
-                  context,
-                  'Pay with Apple Pay',
-                  PaymentType.applepay,
-                ),
-                const SizedBox(height: 16),
-                _buildPaymentOption(context, 'Pay with ABA', PaymentType.aba),
+                _buildPaymentOption(context, 'Pay with ABA QR', PaymentType.aba),
               ],
             ),
           );

@@ -5,11 +5,19 @@ import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/models/course_model.dart';
 import 'package:education_app/screens/learning_screen.dart';
+import 'package:education_app/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:education_app/models/user_model.dart';
 
 class EReceiptScreen extends StatefulWidget {
   final Course course;
+  final String paymentMethodDetail;
 
-  const EReceiptScreen({super.key, required this.course});
+  const EReceiptScreen({
+    super.key,
+    required this.course,
+    required this.paymentMethodDetail,
+  });
 
   @override
   State<EReceiptScreen> createState() => _EReceiptScreenState();
@@ -122,6 +130,11 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context).user;
+    final String userPhone = (user.phoneNumber != null && user.phoneNumber!.isNotEmpty)
+        ? user.phoneNumber!
+        : '+855';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -188,9 +201,9 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Student', 'Sopheap'),
-                    _buildInfoRow('Email', 'sopheap@gmail.com'),
-                    _buildInfoRow('Phone', '855+ 0876543678'),
+                    _buildInfoRow('Student', user.name),
+                    _buildInfoRow('Email', user.email),
+                    _buildInfoRow('Phone', userPhone),
                     _buildInfoRow('Country', 'Cambodia'),
                     const Divider(
                       height: 30,
@@ -212,10 +225,10 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       'Price',
                       '\$${widget.course.discountPrice ?? widget.course.price}',
                     ),
-                    _buildInfoRow('Payment method', 'Paypal'),
+                    _buildInfoRow('Payment method', widget.paymentMethodDetail),
                     _buildInfoRow('Date', _date ?? ''),
                     _buildInfoRow('Time', _time ?? ''),
-                    _buildInfoRow('Status', 'Unpaid', valueColor: Colors.blue),
+                    _buildInfoRow('Status', 'Paid', valueColor: Colors.green),
                   ],
                 ),
               ),
