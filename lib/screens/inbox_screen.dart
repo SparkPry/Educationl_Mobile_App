@@ -7,6 +7,10 @@ import 'package:education_app/widgets/chat_item_widget.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
+import 'package:education_app/screens/student_profile_screen.dart';
+import 'package:education_app/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:education_app/models/user_model.dart'; // Add this import
 
 class InboxScreen extends StatefulWidget {
   const InboxScreen({super.key});
@@ -32,6 +36,7 @@ class _InboxScreenState extends State<InboxScreen> {
       avatarText: 'EV',
       avatarUrl: 'assets/images/Eve.jpg',
       isUnread: true,
+      isMentor: true,
     ),
 
     const Chat(
@@ -41,6 +46,7 @@ class _InboxScreenState extends State<InboxScreen> {
       avatarText: 'AL',
       avatarUrl: 'assets/images/Alice.jpg',
       isUnread: false,
+      isMentor: true,
     ),
     const Chat(
       senderName: 'Bob',
@@ -49,6 +55,7 @@ class _InboxScreenState extends State<InboxScreen> {
       avatarText: 'BO',
       avatarUrl: 'assets/images/Bob.jpg',
       isUnread: true,
+      isMentor: true,
     ),
     const Chat(
       senderName: 'Charlie',
@@ -57,6 +64,7 @@ class _InboxScreenState extends State<InboxScreen> {
       avatarText: 'CH',
       avatarUrl: 'assets/images/Charlie.jpg',
       isUnread: false,
+      isMentor: true,
     ),
     const Chat(
       senderName: 'Diana',
@@ -65,6 +73,7 @@ class _InboxScreenState extends State<InboxScreen> {
       avatarText: 'DI',
       avatarUrl: 'assets/images/Diana.jpg',
       isUnread: true,
+      isMentor: true,
     ),
   ];
 
@@ -113,9 +122,13 @@ class _InboxScreenState extends State<InboxScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => MessageConversationScreen(
-                    chatUser: chat.senderName,
-                    avatarText: chat.avatarText,
-                    avatarUrl: chat.avatarUrl,
+                    chatUser: UserModel(
+                      name: chat.senderName,
+                      email: '${chat.senderName.toLowerCase().replaceAll(' ', '')}@example.com', // Dummy email
+                      avatar: chat.avatarUrl ?? '', // Use avatarUrl from chat, or empty string
+                      // Other UserModel properties can be left as default or fetched if necessary
+                    ),
+                    isMentor: chat.isMentor,
                   ),
                 ),
               );

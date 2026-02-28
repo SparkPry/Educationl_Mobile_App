@@ -34,6 +34,44 @@ class Course {
     required this.level,
     this.progress, // Added to constructor
   });
+
+  Course copyWith({
+    String? id,
+    String? slug,
+    String? title,
+    String? category,
+    String? description,
+    String? duration,
+    double? rating,
+    String? image,
+    double? price,
+    String? level,
+    double? discountPrice,
+    Overview? overview,
+    List<CurriculumSection>? curriculum,
+    Instructor? instructor,
+    Reviews? reviews,
+    double? progress,
+  }) {
+    return Course(
+      id: id ?? this.id,
+      slug: slug ?? this.slug,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      description: description ?? this.description,
+      duration: duration ?? this.duration,
+      rating: rating ?? this.rating,
+      image: image ?? this.image,
+      price: price ?? this.price,
+      level: level ?? this.level,
+      discountPrice: discountPrice ?? this.discountPrice,
+      overview: overview ?? this.overview,
+      curriculum: curriculum ?? this.curriculum,
+      instructor: instructor ?? this.instructor,
+      reviews: reviews ?? this.reviews,
+      progress: progress ?? this.progress,
+    );
+  }
 }
 
 /* ---------------- OVERVIEW ---------------- */

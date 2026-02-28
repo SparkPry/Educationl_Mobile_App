@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:education_app/screens/quiz_screen.dart';
 import 'package:education_app/models/course_model.dart';
 import 'package:education_app/services/course_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:education_app/providers/user_provider.dart';
 
 class LearningScreen extends StatefulWidget {
   final Course course;
@@ -251,6 +253,27 @@ class _LearningScreenState extends State<LearningScreen> {
                 const QuizScreen(), // keep static for now
               ],
             ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ElevatedButton(
+          onPressed: () {
+            Provider.of<UserProvider>(context, listen: false).completeCourse(course.id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Course marked as completed!')),
+            );
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor,
+            minimumSize: const Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
+          child: const Text(
+            'Mark as Completed',
+            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ),

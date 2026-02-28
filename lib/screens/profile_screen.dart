@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:education_app/screens/student_profile_screen.dart';
 import 'package:education_app/providers/user_provider.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import 'package:education_app/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:education_app/screens/my_favorite_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -59,6 +61,14 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.favorite_border,
                     text: 'My Favorite',
                     iconColor: AppColors.primaryColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyFavoriteScreen(),
+                        ),
+                      );
+                    },
                   ),
                   ProfileMenuItem(
                     icon: Icons.credit_card,
@@ -201,11 +211,7 @@ class ProfileHeader extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF222222)),
             onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-                (route) => false,
-              );
+              Navigator.pop(context);
             },
           ),
           const Spacer(),
@@ -233,44 +239,87 @@ class ProfileSection extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final user = userProvider.user;
-        return Column(
-          children: [
-            SizedBox(height: 24),
-            ClipOval(
-              child: SizedBox(
-                width: 80,
-                height: 80,
-                child: user.avatar.startsWith('assets/')
-                    ? Image.asset(
-                        user.avatar,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      )
-                    : Image.network(
-                        user.avatar,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      ),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StudentProfileScreen(student: user),
               ),
+            );
+          },
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 24),
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      width: 2,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: _buildAvatarImage(user.avatar),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF222222),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user.email,
+                  style: const TextStyle(
+                    fontSize: 14, 
+                    color: Color(0xFF8E8E93),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            Text(
-              user.name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF222222),
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              user.email,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF8E8E93)),
-            ),
-          ],
+          ),
         );
       },
     );
+  }
+
+  Widget _buildAvatarImage(String avatar) {
+    if (avatar.startsWith('assets/')) {
+      return Image.asset(
+        avatar,
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
+    } else if (avatar.startsWith('http')) {
+      return Image.network(
+        avatar,
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
+    } else {
+      // Assume it's a local file path from image_picker
+      return Image.file(
+        File(avatar),
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+        errorBuilder: (context, error, stackTrace) => Image.asset(
+          'assets/images/John Doe.jpg',
+          fit: BoxFit.cover,
+        ),
+      );
+    }
   }
 }
 

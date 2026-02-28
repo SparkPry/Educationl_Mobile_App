@@ -2,17 +2,20 @@ import 'package:education_app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/models/message_model.dart';
 import 'package:education_app/widgets/message_bubble_widget.dart';
+import 'package:education_app/models/user_model.dart';
+import 'package:education_app/screens/student_profile_screen.dart';
+import 'package:education_app/screens/mentor_profile_screen.dart';
+import 'package:education_app/models/mentor_model.dart';
+import 'package:education_app/data/mentor_list_data.dart'; // Import mentor_list_data.dart
 
 class MessageConversationScreen extends StatefulWidget {
-  final String chatUser;
-  final String avatarText;
-  final String? avatarUrl;
+  final UserModel chatUser;
+  final bool isMentor;
 
   const MessageConversationScreen({
     super.key,
     required this.chatUser,
-    required this.avatarText,
-    this.avatarUrl,
+    this.isMentor = false,
   });
 
   @override
@@ -32,8 +35,8 @@ class _MessageConversationScreenState extends State<MessageConversationScreen> {
         text: 'Hi there! How are you doing today?',
         time: '10:00 AM',
         type: MessageType.received,
-        senderAvatarText: widget.avatarText,
-        senderAvatarUrl: widget.avatarUrl,
+        senderAvatarText: widget.chatUser.name[0],
+        senderAvatarUrl: widget.chatUser.avatar,
       ),
       Message(
         text: 'I\'m doing great, thanks for asking!',
@@ -49,8 +52,8 @@ class _MessageConversationScreenState extends State<MessageConversationScreen> {
         text: 'Sure, I\'d be happy to help! What is your question?',
         time: '10:05 AM',
         type: MessageType.received,
-        senderAvatarText: widget.avatarText,
-        senderAvatarUrl: widget.avatarUrl,
+        senderAvatarText: widget.chatUser.name[0],
+        senderAvatarUrl: widget.chatUser.avatar,
       ),
     ];
   }
@@ -85,12 +88,57 @@ class _MessageConversationScreenState extends State<MessageConversationScreen> {
         ),
         centerTitle: true,
         title: Text(
-          widget.chatUser,
+          widget.chatUser.name,
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: () {
+                if (widget.isMentor) {
+                  final mentor = allMentors.firstWhere(
+                    (m) => m.name == widget.chatUser.name,
+                    orElse: () => Mentor(
+                      name: widget.chatUser.name,
+                      profileImage: widget.chatUser.avatar,
+                      title: "Mentor",
+                      about: widget.chatUser.bio ?? "No bio available.",
+                      courses: [],
+                      students: "0",
+                      rating: "0.0",
+                      reviewsCount: "0",
+                      reviews: [],
+                    ),
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MentorProfileScreen(mentor: mentor),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          StudentProfileScreen(student: widget.chatUser),
+                    ),
+                  );
+                }
+              },
+              child: widget.isMentor && widget.chatUser.avatar.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 20,
+                      backgroundImage: AssetImage(widget.chatUser.avatar),
+                    )
+                  : const Icon(Icons.person),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

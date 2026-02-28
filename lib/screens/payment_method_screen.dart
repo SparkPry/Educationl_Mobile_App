@@ -37,7 +37,11 @@ class PaymentMethodScreen extends StatelessWidget {
     return Icon(iconData, color: color, size: 28);
   }
 
-  Widget _buildPaymentOption(BuildContext context, String label, PaymentType type) {
+  Widget _buildPaymentOption(
+    BuildContext context,
+    String label,
+    PaymentType type,
+  ) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -76,15 +80,18 @@ class PaymentMethodScreen extends StatelessWidget {
   }
 
   Widget _buildSavedMethod(BuildContext context, PaymentMethod method) {
-    if (method.type == PaymentType.visa || method.type == PaymentType.mastercard) {
+    if (method.type == PaymentType.visa ||
+        method.type == PaymentType.mastercard) {
       return SavedPaymentCard(
         method: method,
-        isSelected: false, // The PaymentMethodScreen doesn't have selection state for saved items
+        isSelected:
+            false, // The PaymentMethodScreen doesn't have selection state for saved items
       );
     } else {
       return SimplePaymentMethodItem(
         method: method,
-        isSelected: false, // The PaymentMethodScreen doesn't have selection state for saved items
+        isSelected:
+            false, // The PaymentMethodScreen doesn't have selection state for saved items
         onTap: () {
           // Handle tap for simple methods if needed, though this screen is typically for adding/viewing
         },
@@ -154,7 +161,11 @@ class PaymentMethodScreen extends StatelessWidget {
                   PaymentType.paypal,
                 ),
                 const SizedBox(height: 16),
-                _buildPaymentOption(context, 'Pay with ABA QR', PaymentType.aba),
+                _buildPaymentOption(
+                  context,
+                  'Pay with ABA QR',
+                  PaymentType.aba,
+                ),
               ],
             ),
           );

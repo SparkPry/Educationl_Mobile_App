@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:education_app/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _bioController;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
   final List<Map<String, String>> _countryCodes = [
     {'code': '+855', 'flag': '🇰🇭'}, // Cambodia
@@ -48,11 +52,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _selectedCountryIndex = 0;
 
-    final user = Provider.of<UserProvider>(context, listen: false).user;
     _nameController = TextEditingController(text: '');
     _emailController = TextEditingController(text: '');
-    _phoneController = TextEditingController(text: user.phoneNumber ?? '');
-    _bioController = TextEditingController(text: user.bio ?? '');
+    _phoneController = TextEditingController(text: '');
+    _bioController = TextEditingController(text: '');
   }
 
   @override
@@ -91,6 +94,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         email: emailToSave,
         bio: _bioController.text.trim().isEmpty ? currentUser.bio : _bioController.text,
         phoneNumber: _phoneController.text.trim().isEmpty ? currentUser.phoneNumber : _phoneController.text,
+        avatar: _imageFile?.path,
       );
 
       if (mounted) {
@@ -227,7 +231,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildAvatar() {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
-        final user = userProvider.user;
         return Center(
           child: Stack(
             children: [
@@ -236,7 +239,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 height: 130,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: kPrimaryColor, width: 4),
+                  border: Border.all(color: kPrimaryColor, width: 2),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.2),
@@ -246,24 +249,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ],
                 ),
-                child: ClipOval(
-                  child: SizedBox(
-                    width: 130,
-                    height: 130,
-                    child: user.avatar.startsWith('assets/')
-                        ? Image.asset(
-                            user.avatar,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                          )
-                        : Image.network(
-                            user.avatar,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                          ),
-                  ),
-                ),
-              ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 4),
+                                    ),
+                                    child: ClipOval(
+                                      child: _imageFile != null
+                                          ? Image.file(
+                                              _imageFile!,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : const Image(
+                                              image: AssetImage('assets/images/John Doe.jpg'),
+                                              fit: BoxFit.cover,
+                                              alignment: Alignment.topCenter,
+                                            ),
+                                    ),
+                                  ),              ),
               Positioned(
                 bottom: 0,
                 right: 0,
@@ -274,11 +277,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Container(
                     height: 40,
                     width: 40,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: kPrimaryColor,
+                      border: Border.all(color: Colors.white, width: 3),
                     ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 24),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 20),
                   ),
                 ),
               ),
@@ -433,6 +437,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
+
   void _showImageSourceActionSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -448,9 +474,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Text(
                   'Change Profile Photo',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: kSecondaryTextColor,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: kSecondaryTextColor,
+                      ),
                 ),
               ),
               ListTile(
@@ -461,12 +487,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  // In a real app, use image_picker to select an image
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Camera functionality not implemented.'),
-                    ),
-                  );
+                  _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
@@ -477,12 +498,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  // In a real app, use image_picker to select an image
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gallery functionality not implemented.'),
-                    ),
-                  );
+                  _pickImage(ImageSource.gallery);
                 },
               ),
               const SizedBox(height: 16),

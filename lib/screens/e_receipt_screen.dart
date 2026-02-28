@@ -9,14 +9,18 @@ import 'package:education_app/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:education_app/models/user_model.dart';
 
+import 'package:education_app/models/payment_method.dart';
+
 class EReceiptScreen extends StatefulWidget {
   final Course course;
   final String paymentMethodDetail;
+  final PaymentMethod? paymentMethod;
 
   const EReceiptScreen({
     super.key,
     required this.course,
     required this.paymentMethodDetail,
+    this.paymentMethod,
   });
 
   @override
@@ -27,9 +31,6 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
   String? _date;
   String? _time;
 
-  final Set<String> _completedCourseIds = {
-    '16',
-  }; // adjust to your real completed
   void _showDialog({
     required String message,
     bool goHome = false,
@@ -131,9 +132,13 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context).user;
-    final String userPhone = (user.phoneNumber != null && user.phoneNumber!.isNotEmpty)
-        ? user.phoneNumber!
-        : '+855';
+    
+    // Detect phone from payment method or fallback to user provider
+    String userPhone = widget.paymentMethod?.phoneNumber ?? 
+                      (user.phoneNumber != null && user.phoneNumber!.isNotEmpty ? user.phoneNumber! : '+855');
+    
+    // Detect country from payment method or fallback to default
+    String userCountry = widget.paymentMethod?.country ?? 'Cambodia';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -204,7 +209,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                     _buildInfoRow('Student', user.name),
                     _buildInfoRow('Email', user.email),
                     _buildInfoRow('Phone', userPhone),
-                    _buildInfoRow('Country', 'Cambodia'),
+                    _buildInfoRow('Country', userCountry),
                     const Divider(
                       height: 30,
                       thickness: 1,
@@ -264,11 +269,12 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                 const SizedBox(width: 16), // Spacing between buttons
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
+                  onPressed: () {
                       final courseId = widget.course.id.toString();
+                      final userProvider = Provider.of<UserProvider>(context, listen: false);
 
                       // Already completed
-                      if (_completedCourseIds.contains(courseId)) {
+                      if (userProvider.user.completedCourseIds.contains(courseId)) {
                         _showDialog(
                           message: "You've already completed this course ❌❌❌❌❌",
                           goToOngoing: true,
@@ -277,7 +283,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       }
 
                       // Already enrolled
-                      if (MyCoursesScreen.ongoingCourseIds.contains(courseId)) {
+                      if (userProvider.user.ongoingCourseIds.contains(courseId)) {
                         _showDialog(
                           message:
                               "You've already enrolled in this course 🔙🔙🔙🔙🔙",
@@ -287,7 +293,7 @@ class _EReceiptScreenState extends State<EReceiptScreen> {
                       }
 
                       // ✅ NEW ENROLLMENT
-                      MyCoursesScreen.ongoingCourseIds.add(courseId);
+                      userProvider.enrollInCourse(courseId);
 
                       _showDialog(
                         message:

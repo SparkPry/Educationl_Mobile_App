@@ -5,6 +5,7 @@ class Chat {
   final String avatarText; // Using initials for avatar
   final String? avatarUrl; // Using for avatar
   final bool isUnread;
+  final bool isMentor;
 
   const Chat({
     required this.senderName,
@@ -13,5 +14,6 @@ class Chat {
     required this.avatarText,
     this.avatarUrl,
     this.isUnread = false,
+    this.isMentor = false,
   });
 }

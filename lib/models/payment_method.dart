@@ -7,6 +7,11 @@ class PaymentMethod {
   final String expiryDate;
   final String cvv;
   final PaymentType type;
+  final String? streetAddress;
+  final String? city;
+  final String? zipCode;
+  final String? country;
+  final String? phoneNumber;
 
   PaymentMethod({
     required this.id,
@@ -15,6 +20,11 @@ class PaymentMethod {
     required this.expiryDate,
     required this.cvv,
     required this.type,
+    this.streetAddress,
+    this.city,
+    this.zipCode,
+    this.country,
+    this.phoneNumber,
   });
 
   String get lastFourDigits {

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/course_model.dart';
 import '../data/review_data.dart';
 import '../models/review.dart';
+import 'package:education_app/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'payment_screen.dart';
 
 class CourseScreen extends StatefulWidget {
@@ -78,6 +80,31 @@ class _CourseScreenState extends State<CourseScreen>
                                   color: Colors.white,
                                 ),
                                 onPressed: () => Navigator.pop(context),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.black45,
+                              child: Consumer<UserProvider>(
+                                builder: (context, userProvider, child) {
+                                  final isFavorite =
+                                      userProvider.isFavorite(course.id);
+                                  return IconButton(
+                                    icon: Icon(
+                                      isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color:
+                                          isFavorite ? Colors.red : Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      userProvider.toggleFavorite(course.id);
+                                    },
+                                  );
+                                },
                               ),
                             ),
                           ),

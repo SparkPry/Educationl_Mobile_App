@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/mentor_model.dart';
 import '../utils/app_colors.dart';
 import 'message_conversation_screen.dart';
+import 'package:education_app/models/user_model.dart'; // Add this import
 
 class MentorProfileScreen extends StatelessWidget {
   final Mentor mentor;
@@ -354,9 +355,12 @@ class MentorProfileScreen extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => MessageConversationScreen(
-                  chatUser: mentor.name,
-                  avatarText: mentor.name[0],
-                  avatarUrl: mentor.profileImage,
+                  chatUser: UserModel(
+                    name: mentor.name,
+                    email: '${mentor.name.toLowerCase().replaceAll(' ', '')}@example.com', // Dummy email
+                    avatar: mentor.profileImage,
+                  ),
+                  isMentor: true, // Explicitly set to true for mentor chats
                 ),
               ),
             );

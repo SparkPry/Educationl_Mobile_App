@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:education_app/providers/user_provider.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,7 @@ import 'package:education_app/screens/student_profile_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/screens/mentor_profile_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:education_app/data/mentor_list_data.dart'; // Import mentor_list_data.dart
 
 import 'package:education_app/widgets/course_card.dart';
 import '../models/course_model.dart';
@@ -154,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 3:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
         );
         break;
     }
@@ -205,42 +207,58 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, userProvider, child) {
           final user = userProvider.user;
           return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StudentProfileScreen(student: user)),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            StudentProfileScreen(student: user)),
                   );
                 },
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: ClipOval(
-                    child: user.avatar.startsWith('assets/')
-                        ? Image.asset(
-                            user.avatar,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                          )
-                        : Image.network(
-                            user.avatar,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primaryColor.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: _buildAvatarImage(user.avatar),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Good morning",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
                           ),
-                  ),
+                        ),
+                        Text(
+                          user.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Good morning", style: TextStyle(color: Colors.grey)),
-                  Text(
-                    user.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ],
               ),
               const Spacer(),
               IconButton(
@@ -266,6 +284,32 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
+  }
+
+  Widget _buildAvatarImage(String avatar) {
+    if (avatar.startsWith('assets/')) {
+      return Image.asset(
+        avatar,
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
+    } else if (avatar.startsWith('http')) {
+      return Image.network(
+        avatar,
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+      );
+    } else {
+      return Image.file(
+        File(avatar),
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+        errorBuilder: (context, error, stackTrace) => Image.asset(
+          'assets/images/John Doe.jpg',
+          fit: BoxFit.cover,
+        ),
+      );
+    }
   }
 
   Widget _buildPromoBanner() {
@@ -468,47 +512,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMentorSection() {
-    final mentors = [
-      {"name": "Alice", "avatar": "assets/images/Alice.jpg"},
-      {"name": "Bob", "avatar": "assets/images/Bob.jpg"},
-      {"name": "Charlie", "avatar": "assets/images/Charlie.jpg"},
-      {"name": "Diana", "avatar": "assets/images/Diana.jpg"},
-      {"name": "Eve", "avatar": "assets/images/Eve.jpg"},
-    ];
-
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: mentors.map((mentorData) {
+        child: Wrap(
+          spacing: 16.0,
+          runSpacing: 16.0,
+          alignment: WrapAlignment.spaceBetween,
+          children: allMentors.map((mentor) {
             return GestureDetector(
               onTap: () {
-                final mentor = Mentor(
-                  name: mentorData["name"]!,
-                  profileImage: mentorData["avatar"]!,
-                  title: "Senior Product Designer",
-                  about:
-                      "Experienced mentor with a passion for teaching and helping students achieve their goals in the field of design and technology. I have over 10 years of experience in the industry and have worked with several top-tier companies.",
-                  courses: ["UI/UX Design", "Graphic Design", "Web Design"],
-                  students: "1,250",
-                  rating: "4.8",
-                  reviewsCount: "450",
-                  reviews: [
-                    MentorReview(
-                      userName: "Alex Johnson",
-                      comment: "Amazing mentor! Really helped me understand the core concepts of UI/UX.",
-                      rating: 5.0,
-                      date: "2 days ago",
-                    ),
-                    MentorReview(
-                      userName: "Sarah Williams",
-                      comment: "The courses are well-structured and easy to follow.",
-                      rating: 4.5,
-                      date: "1 week ago",
-                    ),
-                  ],
-                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -516,25 +529,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: 60, // 2 * radius
-                    height: 60, // 2 * radius
-                    child: ClipOval(
-                      child: Image.asset(
-                        mentorData["avatar"]!,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: 60,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: 60, // 2 * radius
+                      height: 60, // 2 * radius
+                      child: ClipOval(
+                        child: Image.asset(
+                          mentor.profileImage,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    mentorData["name"]!,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      mentor.name,
+                      style: const TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),

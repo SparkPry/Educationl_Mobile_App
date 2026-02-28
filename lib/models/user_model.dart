@@ -23,6 +23,9 @@ class UserModel {
   final int? learningHours;
   final List<Certificate>? certificates;
   final List<String>? enrolledCourseNames;
+  final Set<String> ongoingCourseIds;
+  final Set<String> completedCourseIds;
+  final Set<String> favoriteCourseIds;
 
   UserModel({
     required this.name,
@@ -35,6 +38,9 @@ class UserModel {
     this.learningHours,
     this.certificates,
     this.enrolledCourseNames,
+    this.ongoingCourseIds = const {},
+    this.completedCourseIds = const {},
+    this.favoriteCourseIds = const {},
   });
 
   UserModel copyWith({
@@ -48,6 +54,9 @@ class UserModel {
     int? learningHours,
     List<Certificate>? certificates,
     List<String>? enrolledCourseNames,
+    Set<String>? ongoingCourseIds,
+    Set<String>? completedCourseIds,
+    Set<String>? favoriteCourseIds,
   }) {
     return UserModel(
       name: name ?? this.name,
@@ -60,6 +69,9 @@ class UserModel {
       learningHours: learningHours ?? this.learningHours,
       certificates: certificates ?? this.certificates,
       enrolledCourseNames: enrolledCourseNames ?? this.enrolledCourseNames,
+      ongoingCourseIds: ongoingCourseIds ?? this.ongoingCourseIds,
+      completedCourseIds: completedCourseIds ?? this.completedCourseIds,
+      favoriteCourseIds: favoriteCourseIds ?? this.favoriteCourseIds,
     );
   }
 }

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:education_app/utils/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:education_app/providers/user_provider.dart';
 
+import 'package:education_app/screens/student_profile_screen.dart';
 import 'package:education_app/screens/home_screen.dart';
 import 'package:education_app/screens/inbox_screen.dart';
 import 'package:education_app/screens/profile_screen.dart';
 import 'package:education_app/screens/learning_screen.dart';
 import 'package:education_app/models/course_model.dart';
 import 'package:education_app/services/course_api_service.dart';
+import 'package:education_app/data/course_data.dart';
 
 class MyCoursesScreen extends StatefulWidget {
   final String? initialCategory;
   final int initialTabIndex;
-  static Set<String> ongoingCourseIds = {'9', '13', '15'};
-  static Set<String> completedCourseIds = {};
+
   const MyCoursesScreen({
     Key? key,
     this.initialCategory,
@@ -36,61 +39,34 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
 
   static const List<String> _tabTitles = ['All Course', 'Ongoing', 'Completed'];
 
-  // ---------- MOCK DATA ----------
+  // ---------- COURSE HELPERS ----------
   List<Course> get _ongoingCourses {
-    return _apiCourses
-        .where((course) => MyCoursesScreen.ongoingCourseIds.contains(course.id))
-        .map((course) {
-          return Course(
-            id: course.id,
-            slug: course.slug,
-            title: course.title,
-            category: course.category,
-            description: course.description,
-            duration: course.duration,
-            rating: course.rating,
-            image: course.image,
-            price: course.price,
-            level: course.level,
-            overview: course.overview,
-            curriculum: course.curriculum,
-            instructor: course.instructor,
-            reviews: course.reviews,
-
-            // ✅ MOCK PROGRESS ONLY
-            progress: course.id == '9'
-                ? 0.25
-                : course.id == '13'
-                ? 0.0
-                : 0.0,
-          );
-        })
+    final user = Provider.of<UserProvider>(context).user;
+    final ongoingIds = user.ongoingCourseIds;
+    
+    // Combine API courses and Local course data
+    final List<Course> allPossibleCourses = [..._apiCourses, ...courseData];
+    
+    // Filter by ID and remove duplicates (if any)
+    final seenIds = <String>{};
+    return allPossibleCourses
+        .where((course) => ongoingIds.contains(course.id))
+        .where((course) => seenIds.add(course.id))
         .toList();
   }
 
   List<Course> get _completedCourses {
-    return _apiCourses.where((course) => course.id == '16').map((course) {
-      return Course(
-        id: course.id,
-        slug: course.slug,
-        title: course.title,
-        category: course.category,
-        description: course.description,
-        duration: course.duration,
-        rating: course.rating,
-        image: course.image,
-        price: course.price,
-        discountPrice: course.discountPrice,
-        level: course.level,
-        overview: course.overview,
-        curriculum: course.curriculum,
-        instructor: course.instructor,
-        reviews: course.reviews,
+    final user = Provider.of<UserProvider>(context).user;
+    final completedIds = user.completedCourseIds;
 
-        // ✅ Completed = 100%
-        progress: 1.0,
-      );
-    }).toList();
+    final List<Course> allPossibleCourses = [..._apiCourses, ...courseData];
+    
+    final seenIds = <String>{};
+    return allPossibleCourses
+        .where((course) => completedIds.contains(course.id))
+        .where((course) => seenIds.add(course.id))
+        .map((course) => course.copyWith(progress: 1.0))
+        .toList();
   }
 
   // ================= API =================
@@ -242,7 +218,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
               const SizedBox(height: 12),
 
               Expanded(
-                child: _isLoadingApi && _selectedTabIndex == 0
+                child: _isLoadingApi && _currentCourses.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : _currentCourses.isEmpty
                     ? const Center(

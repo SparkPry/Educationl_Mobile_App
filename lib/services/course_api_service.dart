@@ -8,7 +8,7 @@ class CourseApiService {
 
   static Future<List<ApiCourse>> fetchCourses(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/api/courses'),
+      Uri.parse('$_baseUrl/api/auth/courses'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -25,7 +25,7 @@ class CourseApiService {
     required String courseId,
   }) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/api/courses/$courseId/lessons'),
+      Uri.parse('$_baseUrl/api/auth/courses/$courseId/lessons'),
       headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
     );
 

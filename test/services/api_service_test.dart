@@ -13,7 +13,7 @@ void main() {
     test('ApiService should initialize with correct base URL', () {
       // Assert
       expect(apiService.dio.options.baseUrl,
-          equals('https://e-learning-api-production-a6d4.up.railway.app/api'));
+          equals('https://e-learning-api-production-a6d4.up.railway.app/api/'));
     });
 
     test('ApiService should have correct default headers', () {

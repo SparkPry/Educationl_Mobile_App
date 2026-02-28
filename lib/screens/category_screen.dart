@@ -26,7 +26,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Future<void> _fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/api/courses'));
+      final response = await http.get(Uri.parse('$_baseUrl/api/auth/courses'));
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);

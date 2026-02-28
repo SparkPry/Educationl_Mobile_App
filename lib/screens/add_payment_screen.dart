@@ -87,11 +87,50 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
   bool _cardHolderError = false;
   bool _expiryError = false;
   bool _cvvError = false;
+  bool _streetError = false;
+  bool _cityError = false;
+  bool _zipError = false;
+  bool _countryError = false;
+  bool _phoneError = false;
 
   final _cardNumberController = TextEditingController();
   final _cardHolderController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _zipController = TextEditingController();
+  final _countryController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  final List<String> _countries = [
+    'Cambodia',
+    'USA',
+    'United Kingdom',
+    'Canada',
+    'Australia',
+    'Thailand',
+    'Vietnam',
+    'Singapore',
+    'Japan',
+    'South Korea',
+  ];
+
+  final Map<String, String> _countryCodes = {
+    'Cambodia': '+855',
+    'USA': '+1',
+    'United Kingdom': '+44',
+    'Canada': '+1',
+    'Australia': '+61',
+    'Thailand': '+66',
+    'Vietnam': '+84',
+    'Singapore': '+65',
+    'Japan': '+81',
+    'South Korea': '+82',
+  };
+
+  String? _selectedCountry;
+  String? _selectedPhoneCountry = 'Cambodia';
 
   @override
   void initState() {
@@ -126,6 +165,8 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
         logoAsset = 'assets/images/mastercard.jpg';
         break;
       case PaymentType.paypal:
+        logoAsset = 'assets/images/paypal.jpg';
+        break;
       case PaymentType.aba:
         return Container(width: 60); // Do not display logo for these types
     }
@@ -160,6 +201,10 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
   }
 
   void _handlePayment() {
+    bool isCreditCardOrPaypal = widget.paymentType == PaymentType.visa ||
+        widget.paymentType == PaymentType.mastercard ||
+        widget.paymentType == PaymentType.paypal;
+
     setState(() {
       _cardNumberError =
           _cardNumberController.text.replaceAll(' ', '').length != 16;
@@ -169,9 +214,24 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
       _expiryError = _expiryController.text.length != 5;
 
       _cvvError = _cvvController.text.length != 3;
+
+      _countryError = _selectedCountry == null;
+      _phoneError = _phoneController.text.trim().isEmpty;
+
+      if (isCreditCardOrPaypal) {
+        _streetError = _streetController.text.trim().isEmpty;
+        _cityError = _cityController.text.trim().isEmpty;
+        _zipError = _zipController.text.trim().isEmpty;
+      }
     });
 
-    if (_cardNumberError || _cardHolderError || _expiryError || _cvvError) {
+    if (_cardNumberError ||
+        _cardHolderError ||
+        _expiryError ||
+        _cvvError ||
+        _countryError ||
+        _phoneError ||
+        (isCreditCardOrPaypal && (_streetError || _cityError || _zipError))) {
       return;
     }
 
@@ -180,9 +240,8 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
     // Determine payment type from card number
     PaymentType type = widget.paymentType;
     String cardType = _getCardTypeFromNumber(_cardNumberController.text);
-    if(cardType == 'visa') type = PaymentType.visa;
-    if(cardType == 'mastercard') type = PaymentType.mastercard;
-
+    if (cardType == 'visa') type = PaymentType.visa;
+    if (cardType == 'mastercard') type = PaymentType.mastercard;
 
     // Save payment method
     final paymentMethod = PaymentMethod(
@@ -192,6 +251,11 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
       expiryDate: _expiryController.text,
       cvv: _cvvController.text,
       type: type,
+      streetAddress: _streetController.text.trim(),
+      city: _cityController.text.trim(),
+      zipCode: _zipController.text.trim(),
+      country: _selectedCountry,
+      phoneNumber: "${_countryCodes[_selectedPhoneCountry]} ${_phoneController.text.trim()}",
     );
 
     Provider.of<PaymentProvider>(context, listen: false)
@@ -207,7 +271,11 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => EReceiptScreen(course: widget.course!, paymentMethodDetail: detail),
+              builder: (_) => EReceiptScreen(
+                course: widget.course!,
+                paymentMethodDetail: detail,
+                paymentMethod: paymentMethod,
+              ),
             ),
           );
         } else {
@@ -230,6 +298,11 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
     _cardHolderController.dispose();
     _expiryController.dispose();
     _cvvController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _zipController.dispose();
+    _countryController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -453,6 +526,73 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
 
                         const SizedBox(height: 16),
 
+                        /// PHONE NUMBER WITH DROPDOWN PREFIX
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Phone Number", style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 90,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _selectedPhoneCountry,
+                                      isExpanded: true,
+                                      alignment: Alignment.center,
+                                      items: _countries.map((String country) {
+                                        return DropdownMenuItem<String>(
+                                          value: country,
+                                          child: Center(
+                                            child: Text(
+                                              _countryCodes[country]!,
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          _selectedPhoneCountry = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _phoneController,
+                                    keyboardType: TextInputType.phone,
+                                    onChanged: (_) {
+                                      if (_phoneError) {
+                                        setState(() => _phoneError = false);
+                                      }
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: "Enter number",
+                                      border: _border(_phoneError ? Colors.red : Colors.grey.shade300),
+                                      focusedBorder: _border(
+                                        _phoneError ? Colors.red : AppColors.primaryColor,
+                                      ),
+                                      errorText: _phoneError ? "Required" : null,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
                         Row(
                           children: [
                             /// EXPIRY
@@ -499,6 +639,99 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                             ),
                           ],
                         ),
+
+                        if (widget.paymentType == PaymentType.visa ||
+                            widget.paymentType == PaymentType.mastercard ||
+                            widget.paymentType == PaymentType.paypal) ...[
+                          const SizedBox(height: 32),
+                          const Text(
+                            "Billing Address",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// STREET ADDRESS
+                          _buildField(
+                            label: "Street Address",
+                            hint: "123 Main St",
+                            controller: _streetController,
+                            hasError: _streetError,
+                            onChanged: () {
+                              if (_streetError) {
+                                setState(() => _streetError = false);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// CITY
+                          _buildField(
+                            label: "City",
+                            hint: "New York",
+                            controller: _cityController,
+                            hasError: _cityError,
+                            onChanged: () {
+                              if (_cityError) {
+                                setState(() => _cityError = false);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// ZIP CODE
+                          _buildField(
+                            label: "Zip Code",
+                            hint: "10001",
+                            controller: _zipController,
+                            hasError: _zipError,
+                            keyboardType: TextInputType.number,
+                            onChanged: () {
+                              if (_zipError) {
+                                setState(() => _zipError = false);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// COUNTRY
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Country", style: TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              DropdownButtonFormField<String>(
+                                value: _selectedCountry,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  hintText: "Select Country",
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                                  border: _border(_countryError ? Colors.red : Colors.grey.shade300),
+                                  focusedBorder: _border(
+                                    _countryError ? Colors.red : AppColors.primaryColor,
+                                  ),
+                                ),
+                                items: _countries.map((String country) {
+                                  return DropdownMenuItem<String>(
+                                    value: country,
+                                    child: Text(country),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    _selectedCountry = newValue;
+                                    if (_countryError) {
+                                      _countryError = false;
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
