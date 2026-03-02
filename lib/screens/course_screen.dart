@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/course_model.dart';
 import '../data/review_data.dart';
 import '../models/review.dart';
-import '../payment_screen.dart';
+import 'payment_screen.dart';
 
 class CourseScreen extends StatefulWidget {
   const CourseScreen({super.key});

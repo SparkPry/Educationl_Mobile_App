@@ -10,6 +10,9 @@ import 'package:education_app/services/course_api_service.dart';
 import '../services/api_service.dart';
 
 class MyCoursesScreen extends StatefulWidget {
+  // used by other screens when checking enrollment status
+  static final Set<String> ongoingCourseIds = {};
+
   final String? initialCategory;
   final int initialTabIndex;
 

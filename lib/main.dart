@@ -15,6 +15,9 @@ import 'package:education_app/screens/splash_screen.dart';
 import 'package:education_app/screens/verification_screen.dart';
 import 'package:education_app/utils/app_colors.dart';
 import 'package:education_app/services/api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:education_app/providers/payment_provider.dart';
+import 'package:education_app/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:education_app/screens/my_courses_screen.dart';
 
@@ -66,44 +69,51 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Education App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
-        useMaterial3: true,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+    // Provide global state to widget tree
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Education App',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
+          useMaterial3: true,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
 
-      home: FutureBuilder<Widget>(
-        future: _getInitialScreen(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SplashScreen(); // show splash while checking
-          }
+        home: FutureBuilder<Widget>(
+          future: _getInitialScreen(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen(); // show splash while checking
+            }
 
-          if (snapshot.hasData) {
-            return snapshot.data!;
-          }
+            if (snapshot.hasData) {
+              return snapshot.data!;
+            }
 
-          return const LoginScreen();
+            return const LoginScreen();
+          },
+        ),
+
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/forgot_password': (context) => const ForgotPasswordScreen(),
+          '/new_password': (context) => const NewPasswordScreen(),
+          '/verification': (context) => const VerificationScreen(),
+          '/search': (context) => const SearchScreen(),
+          '/notification': (context) => const NotificationScreen(),
+          '/myCourses': (context) => const MyCoursesScreen(),
+          '/category': (context) => const CategoryScreen(),
+          '/course': (context) => const CourseScreen(),
+          '/filter': (context) => const FilterScreen(),
+          '/onboarding': (context) => const OnboardingScreen(),
         },
       ),
-
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/forgot_password': (context) => const ForgotPasswordScreen(),
-        '/new_password': (context) => const NewPasswordScreen(),
-        '/verification': (context) => const VerificationScreen(),
-        '/search': (context) => const SearchScreen(),
-        '/notification': (context) => const NotificationScreen(),
-        '/myCourses': (context) => const MyCoursesScreen(),
-        '/category': (context) => const CategoryScreen(),
-        '/course': (context) => const CourseScreen(),
-        '/filter': (context) => const FilterScreen(),
-        '/onboarding': (context) => const OnboardingScreen(),
-      },
     );
   }
 }
