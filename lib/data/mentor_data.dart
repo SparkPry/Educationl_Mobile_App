@@ -28,8 +28,8 @@ final List<Mentor> mentorData = [
     ],
   ),
   Mentor(
-    name: "Bob",
-    profileImage: "assets/images/Bob.jpg",
+    name: "Emma Laui",
+    profileImage: "assets/images/Emma_Laui.jpg",
     title: "Full Stack Developer",
     about:
         "Expert in full-stack web development with specialization in React and Node.js. I have successfully developed numerous web applications and mentored over 500 students worldwide.",
@@ -55,8 +55,8 @@ final List<Mentor> mentorData = [
     ],
   ),
   Mentor(
-    name: "Charlie",
-    profileImage: "assets/images/Charlie.jpg",
+    name: "Mota",
+    profileImage: "assets/images/Mota.jpg",
     title: "Data Science Specialist",
     about:
         "Specialized in machine learning, data analysis, and artificial intelligence. I have worked with leading tech companies on cutting-edge AI projects.",
